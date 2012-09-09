@@ -1,0 +1,51 @@
+name: myScribe
+main: REALDrummer.myScribe
+version: 0
+description: >
+             Using the chat has never been easier!
+commands:
+   accept:
+      aliases: [acceptrules, accepttherules]
+      description: This command will let you accept the server's rules.
+      usage: |
+           /<command>
+   afk:
+      aliases: [nick, nickname, name]
+      description: This command will let you toggle your a.f.k. status, check if a specific player is a.f.k., or see a list of all the people who are a.f.k.
+      usage: |
+           /<command> (player/"list")
+   color:
+      aliases: [colors, colorcodes, codes]
+      description: This command shows what color codes result in what color or formatting code.
+      usage: |
+           /<command>
+   disable:
+      aliases: [dis]
+      description: This command allows you to disable plugins on your server.
+      usage: |
+           /<command> [plugin]
+   enable:
+      aliases: [en]
+      description: This command allows you to enable disabled plugins on your server.
+      usage: |
+           /<command> [plugin]
+   enchant:
+      aliases: [ench]
+      description: This command allows you to enchant whatever item you're holding.
+      usage: |
+           /<command> [enchantment] (level) (, [enchantment] (level), (...))
+   epithet:
+      aliases: [nick, nickname, name]
+      description: This command allows users to set epithets.
+      usage: |
+           /<command> (for:[player]) [epithet]
+   myChat:
+      aliases: [myC]
+      description: This command updates the save files with all the new info from the server or vice versa.
+      usage: |
+           /<command> [load/save] (the) chat
+   rules:
+      aliases: []
+      description: This command displays all the rules for your server.
+      usage: |
+           /<command> (page #)
