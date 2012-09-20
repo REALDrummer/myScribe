@@ -39,8 +39,8 @@ commands:
       description: This command allows users to set epithets.
       usage: |
            /<command> (for:[player]) [epithet]
-   myChat:
-      aliases: [myC]
+   myScribe:
+      aliases: [mS]
       description: This command updates the save files with all the new info from the server or vice versa.
       usage: |
            /<command> [load/save] (the) chat
@@ -49,3 +49,8 @@ commands:
       description: This command displays all the rules for your server.
       usage: |
            /<command> (page #)
+   say:
+      aliases: [broadcast, bc]
+      description: This command broadcasts a message across the server.
+      usage: |
+           /<command> [message]
