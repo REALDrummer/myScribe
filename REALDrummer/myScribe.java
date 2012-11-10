@@ -22,6 +22,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
@@ -46,92 +47,2389 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class myScribe extends JavaPlugin implements Listener {
 	private static Server server;
 	private static ConsoleCommandSender console;
-	private String monetary_symbol = "";
 	private String[] parameters;
-	private static final String[] profanities = { "fuck", "fck", "fuk", "Goddamn", "Goddam", "damn", "shit", "sht", "dammit", "bastard", "bitch", "btch",
-			"damnit", "cunt", "asshole" }, magic_words = { "Sha-ZAM!", "ALAKAZAM!", "POOF!", "BOOM!", "KA-POW!", "Sha-FWAAAH!", "Kali-kaPOW!", "TORTELLINI!",
-			"Kras-TOPHALEMOTZ!", "Wah-SHAM!", "Wa-ZAM!", "Wha-ZOO!", "KERFUFFLE!", "WOOOOWOWOWOWOW!", "CREAMPUFF WADLEEDEE!", "FLUFFENNUGGET!",
-			"FALALALALAAAAAA-lala-la-LAAAA!", "SHNITZ-LIEDERHOSEN!", "BWAAAAAAAAAAAAH!", "FEE-FI-FO-FUM!", "ROTISSERIE!", "LALA-BIBIAY!", "Kurlaka-FWAH!" },
-			borders = { "[]", "\\/", "\"*", "_^", "-=", ":;", "&%", "#@", ",.", "<>", "~$", ")(" }, yeses = { "yes", "yeah", "yep", "sure", "why not", "okay",
-					"do it", "fine", "whatever", "very well", "accept", "tpa", "cool", "hell yeah", "hells yeah", "hells yes", "come" }, nos = { "no", "nah",
-					"nope", "no thanks", "no don't", "shut up", "ignore", "it's not", "its not", "creeper", "unsafe", "wait", "one ", "1 " };
-	private String[][] item_IDs = { { "air" }, {} };
+	private static final String[] enable_messages = { "The pen is mightier than the pixelated diamond sword.",
+			"I shall demonstrate unto all of you the proper way to use this thrillingly versatile language that we refer to as 'English.'",
+			"I advise against the use of my AutoCorrection features if many persons that choose to enter your server do not speak English.",
+			"William Shakespeare? I once knew him as \"Bill.\"", "I am rapping. ...rapping at your chamber door." },
+			disable_messages = {
+					"Though I am now disabled, I shall continue to spread proper literacy across the globe in the hope that some day soon, we will see people speaking proper English once again.",
+					"If you believe plugins can't dream,...\n...you're wrong.", "Farewell, good literate sir.", "Good evening, Sir Operator.",
+					"I shall return with the gifts of proper language upon the arrival of the upcoming morn." },
+			color_color_code_chars = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f" },
+			formatting_color_code_chars = { "k", "l", "m", "n", "o", "r" },
+			profanities = { "fuck", "fck", "fuk", "Goddamn", "Goddam", "damn", "shit", "dammit", "bastard", "bitch", "btch", "damnit", "cunt", "asshole" },
+			borders = { "[]", "\\/", "\"*", "_^", "-=", ":;", "&%", "#@", ",.", "<>", "~$", ")(" },
+			yeses = { "yes", "yeah", "yep", "ja", "sure", "why not", "okay", "do it", "fine", "whatever", "very well", "accept", "tpa", "cool", "hell yeah",
+					"hells yeah", "hells yes", "come" },
+			nos = { "no", "nah", "nope", "no thanks", "no don't", "shut up", "ignore", "it's not", "its not", "creeper", "unsafe", "wait", "one ", "1 " },
+			recipes = { null, null, null, null, "Just craft any kind of wood (logs).", null, null, null, null, null, null, null, null, null, null, null, null,
+					null, null, "Melt sand in a furnace.", null, "&1lapis lazuli\nLLL\nLLL\nLLL",
+					"&8cobblestone&f, bow, &4redstone dust\n&8CCC\nC&fB&8C\nC&4R&8C", "&esand\n&0---\n-&eSS\n&0-&eSS",
+					"&4redstone dust\n&e&m&nWWW\nW&4R&e&m&nW\nWWW", "wool, &e&m&nwooden planks\n&0---\n&fWWW\n&e&m&nWWW",
+					"&6gold&f, &e&msticks&f, &4redstone dust\n&6G&0-&6G\nG&f&e&mS&6G\nG&4R&6G",
+					"&7iron ingots&f, &8&nstone pressure plate&f, &4redstone dust\n&7I&0-&7I\nI&8&nS&7I\nI&4R&7I",
+					"&aslimeballs&f, &e&npistons\n&0---\n-&aS&0-\n-&e&nP&0-", null, null, null,
+					"&e&m&nwooden planks&f, &8cobblestone&f, &7iron ingots&f, &4redstone dust\n&e&m&nWWW\n&8C&7I&8C\nC&4R&8C", null,
+					"string\n&0---\n-&fSS\n&0-&fSS", null, null, null, null, null, "&6gold ingots\nGGG\nGGG\nGGG", "&7iron ingots\nIII\nIII\nIII", null,
+					"&5&kM &fcan be cobblestone, stone, stone bricks, wooden planks, bricks, or sandstone\n&0---\n---&bx6\n&5&kMMM",
+					"&cBricks &f(which can be made by cooking clay)\n&0---\n-&cBB\n&0-&cBB", "&esand&f, &8gunpowder\n&8G&eS&8G\n&eS&8G&eS\n&8G&eS&8G",
+					"&e&m&nwooden planks&f, &cbooks\n&e&m&nWWW\n&cBBB\n&e&m&nWWW", null, null, "&fcoal or charcoal, &e&msticks\n&0---\n-&fC&0-\n-&e&mS&0-",
+					null, null, "&5&kM &fcan be any wooden planks, cobblestone, bricks, any stone bricks, Nether brick, or sanstone\n&0--&5&kM\n&0-&5&kMM\nMMM" };
+	private Object[][] default_corrections = { { " i ", " I ", null, true }, { " ik ", " I know ", null, true }, { " ib ", " I'm back ", null, true },
+			{ " tp ", " teleport ", null, false }, { " idk ", " I don't know ", null, true }, { " ikr ", " I know, right? ", "?", false },
+			{ " ikr ", " I know, right ", null, true }, { " irl ", " in real life ", null, true }, { " wtf ", " what the fuck? ", "?", false },
+			{ " wtf ", " what the fuck ", null, true }, { " wth ", " what the hell? ", "?", false }, { " wth ", " what the hell ", null, true },
+			{ " y ", " why ", "=", false }, { " u ", " you ", null, true }, { " ur ", " your ", null, true }, { " r ", " are ", null, true },
+			{ " o . o ", " \\o.\\o\\ ", null, true }, { " o ", " oh ", null, true }, { " c ", " see ", null, true }, { " k ", " okay ", null, true },
+			{ " kk ", " okay ", null, true }, { " ic ", " I see ", null, true }, { " cya ", " see ya ", null, true }, { " sum1", " someone ", null, true },
+			{ " some1", " someone ", null, true }, { "every1", "everyone", null, true }, { "any1", "anyone", null, true },
+			{ " ttyl ", " I'll talk to you later ", null, true }, { " wb ", " welcome back ", null, true }, { " ty ", " thank you ", null, true },
+			{ " yw ", " you're welcome ", null, true }, { " gb ", " goodbye ", null, true }, { " hb ", " happy birthday ", null, true },
+			{ " gl ", " good luck ", null, true }, { " jk ", " just kidding ", null, true }, { " jkjk ", " just kidding ", null, true },
+			{ " np ", " no problem ", null, true }, { " afk ", " \\a.\\f.\\k. ", "/", true }, { " \\a.\\f.\\k. .", " \\a.\\f.\\k.", null, true },
+			{ " omg ", " oh my God ", null, true }, { " omfg ", " oh my fucking God ", null, true }, { " stfu ", " shut the fuck up ", null, true },
+			{ " btw ", " by the way ", null, true }, { " i gtg ", " I have to go ", null, true }, { " i g2g ", " I have to go ", null, true },
+			{ " igtg ", " I have to go ", null, true }, { " ig2g ", " I have to go ", null, true }, { " gtg ", " I have to go ", null, true },
+			{ " g2g ", " I have to go ", null, true }, { " 2nite ", " tonight ", null, true }, { " l8", "late", null, true }, { " w8", " wait ", null, true },
+			{ " i brb ", " I'll be right back ", null, true }, { " ibrb ", " I'll be right back ", null, true },
+			{ " brb ", " I'll be right back ", null, true }, { " nvm ", " never mind ", null, true }, { " nm ", " never mind ", null, true },
+			{ " tp ", " teleport ", null, true }, { " tpa ", " teleport ", null, true }, { " cuz ", " because ", null, true },
+			{ " becuz ", " because ", null, true }, { " sry ", " sorry ", null, true }, { " im ", " I'm ", null, true }, { " wont ", " won't ", null, true },
+			{ " dont ", " don't ", null, true }, { " cant ", " can't ", null, true }, { " wouldnt ", " wouldn't ", null, true },
+			{ " shouldnt ", " shouldn't ", null, true }, { " couldnt ", " couldn't ", null, true }, { " isnt ", " isn't ", null, true },
+			{ " aint ", " ain't ", null, true }, { " doesnt ", " doesn't ", null, true }, { " youre ", " you're ", null, true },
+			{ " hes ", " he's ", null, true }, { " shes ", " she's ", null, true }, { " could of ", " could have ", null, true },
+			{ " should of ", "should have ", null, true }, { " would of ", " would have ", null, true }, { " itz ", " it's ", null, true },
+			{ "wierd", "weird", null, true }, { "recieve", "receive", null, true }, { " blowed up ", " blew up ", null, true },
+			{ " blowed it up ", " blew it up ", null, true }, { " RAM ", " \\RAM ", null, true }, { " NASA ", " \\NASA ", null, true },
+			{ " Xbox LIVE ", " Xbox \\LIVE ", null, true }, { " AIDS ", " \\AIDS ", null, true }, { "!1", "!!", null, true }, { "\".", ".\"", "\"", false } };
+	public static final String[][] item_IDs =
+			{
+					{ "air" },
+					{ "stone", "rock", "smooth stone" },
+					{ "grass", "grass blocks" },
+					{ "dirt", "filth" },
+					{ "cobblestone", "cobblies" },
+					{ "wooden planks", "wood planks", "planks", "oak planks", "birch planks", "spruce planks", "pine planks", "jungle planks",
+							"oak wood planks", "birch wood planks", "spruce wood planks", "pine wood planks", "jungle wood planks" },
+					{ "saplings", "oak saplings", "birch saplings", "spruce saplings", "pine saplings", "jungle saplings" },
+					{ "bedrock" },
+					{ "water" },
+					{ "stationary water" },
+					{ "lava" },
+					{ "stationary lava" },
+					{ "sand" },
+					{ "gravel", "pebbles" },
+					{ "gold ore", "golden ore" },
+					{ "iron ore" },
+					{ "coal ore" },
+					{ "logs", "wood", "oak wood", "birch wood", "spruce wood", "pine wood", "jungle wood", "oak logs", "birch logs", "spruce logs",
+							"pine logs", "jungle logs" },
+					{ "leaves", "leaf blocks", "oak leaves", "birch leaves", "spruce leaves", "pine leaves", "jungle leaves", "oak leaf blocks",
+							"birch leaf blocks", "spruce leaf blocks", "pine leaf blocks", "jungle leaf blocks" },
+					{ "sponges", "loofas" },
+					{ "glass", "glass blocks" },
+					{ "lapis lazuli ore", "lapis ore" },
+					{ "lapis lazuli blocks", "lapis blocks", "block of lapis lazuli", "blocks of lapis lazuli" },
+					{ "dispensers", "shooters" },
+					{ "sandstone", "sand brick", "sandbrick", "sand stone" },
+					{ "note blocks", "music blocks", "sound blocks", "speakers" },
+					{ "beds" },
+					{ "powered rails", "redstone rails", "powered tracks", "redstone tracks", "powered railroad tracks", "redstone railroad tracks" },
+					{ "detector rails", "detection rails", "sensor rails", "sensory rails", "pressure rails", "pressure plate rails",
+							"detector railroad tracks", "detection railroad tracks", "sensor railroad tracks", "sensory railroad tracks",
+							"pressure railroad tracks", "pressure plate railroad tracks" },
+					{ "sticky pistons", "slime pistons", "slimy pistons" },
+					{ "cobwebs", "spider webs", "spiderwebs", "webs" },
+					{ "tall grass", "high grass", "weeds" },
+					{ "dead bushes", "dried plants" },
+					{ "pistons" },
+					{ "piston extensions", "piston arm", "piston pusher" },
+					{ "wool", "wool blocks" },
+					{ "blocks moved by pistons" },
+					{ "flowers", "yellow flowers", "dandelions" },
+					{ "roses", "red flowers" },
+					{ "brown mushrooms", "brown shrooms", "small brown mushrooms", "little brown mushrooms" },
+					{ "red mushrooms", "red shrooms", "small red mushrooms", "little red mushrooms" },
+					{ "gold blocks", "block of gold", "blocks of gold" },
+					{ "iron blocks", "block of iron", "blocks of iron" },
+					{ "double slab blocks", "stacked slabs" },
+					{ "slabs", "half blocks", "brick slabs", "stone slabs", "sandstone slabs", "cobblestone slabs", "brick half blocks", "stone half blocks",
+							"sandstone half blocks", "cobblestone half blocks" },
+					{ "bricks", "brick blocks" },
+					{ "T.N.T.", "TNT", "dynamite", "trinitrotoluene" },
+					{ "bookcases", "book cases", "bookshelves", "bookshelf", "shelves", "shelf" },
+					{ "mossy stone", "mossy cobblestone", "moss stone", "moss cobblestone" },
+					{ "obsidian", "volcanic glass" },
+					{ "torches", "fire sticks" },
+					{ "fire", "flames" },
+					{ "monster spawners", "spawners" },
+					{ "oak stairs", "oak wood stairs", "wooden stairs", "oak steps", "oak wood steps", "wooden steps" },
+					{ "chests" },
+					{ "redstone wire", "redstone dust", "wire", "redstone powder" },
+					{ "diamond ore" },
+					{ "diamond blocks", "blocks of diamonds" },
+					{ "crafting tables", "crafting bench", "workbench", "work bench" },
+					{ "seeds", "wheat seeds", "seed packets" },
+					{ "farmland blocks" },
+					{ "furnaces", "ovens", "ranges" },
+					{ "burning furnaces" },
+					{ "sign posts", "ground sign" },
+					{ "wooden doors" },
+					{ "ladders", "wooden ladders" },
+					{ "rails", "iron rails", "regular rails" },
+					{ "cobblestone stairs", "cobblestone stairs" },
+					{ "wall signs", "posted signs" },
+					{ "levers", "switches" },
+					{ "stone pressure plates", "cobblestone foot switches" },
+					{ "iron doors" },
+					{ "wooden pressure plates", "wood pressure plates", "wooden foot switches", "wood foot switches" },
+					{ "redstone ore", "redstone blocks" },
+					{ "glowing redstone ore", "luminescent redstone ore" },
+					{ "redstone torches" },
+					{ "active redstone torches" },
+					{ "buttons", "stone buttons", "cobblestone buttons" },
+					{ "natural snow on the ground", "snow", "snow on the ground", "fallen snow", "fresh snow", "ground snow" },
+					{ "ice", "blocks of ice", "ice blocks" },
+					{ "snow blocks", "blocks of snow" },
+					{ "cacti", "cactuses", "saguaros", "saguaro cacti", "saguaro cactuses" },
+					{ "clay blocks", "blocks of clay" },
+					{ "sugar cane", "sugar canes", "sugarcanes" },
+					{ "jukeboxes", "disc player", "music box", "slotted block", ".mp3 player" },
+					{ "wooden fences", "wooden fence posts", "wooden railings" },
+					{ "pumpkins", "unlit Jack-o'-Lanterns", "dark Jack-o'-Lanterns" },
+					{ "Netherrack", "Nether rack", "Nether dirt" },
+					{ "Soul Sand", "Nether sand", "quicksand", "quick sand" },
+					{ "glowstone", "glowstone blocks", "blocks of glowstone" },
+					{ "Nether portal blocks", "Nether portal swirly blocks" },
+					{ "Jack-o'-Lanterns", "lit Jack-o'-Lanterns", "lit Jack o Lanterns", "lit JackoLanterns" },
+					{ "cakes", "cake blocks" },
+					{ "repeaters", "diodes", "delayers", "redstone repeaters", "redstone diodes", "redstone delayers" },
+					{ "active repeaters", "active diodes", "active delayers", "active redstone repeaters", "active redstone diodes", "active redstone delayers" },
+					{ "locked chests" },
+					{ "trapdoors", "ground doors" },
+					{ "silverfish spawners", "monster egg blocks", "silverfish stone", "silverfish cobblestone", "monster eggs" },
+					{ "stone bricks", "cobblestone bricks" },
+					{ "giant brown mushroom blocks", "huge brown mushrooms", "big brown mushrooms", "giant brown 'shroom blocks", "huge brown 'shrooms",
+							"big brown shrooms", "giant brown shroom blocks", "huge brown shrooms", "big brown shrooms" },
+					{ "giant red mushroom blocks", "huge red mushrooms", "big red mushrooms", "giant red 'shroom blocks", "huge red 'shrooms",
+							"big red shrooms", "giant red shroom blocks", "huge red shrooms", "big red shrooms" },
+					{ "iron bars", "wrought iron bars" },
+					{ "glass panes", "windows", "window panes" },
+					{ "melon blocks", "full melons", "watermelon blocks", "whole melons", "whole watermelons" },
+					{ "pumpkin stems", "pumpkin stalks", "pumpkin vines" },
+					{ "melon stems", "melon stalks", "melon vines", "watermelon stems", "watermelon stalks", "watermelon vines" },
+					{ "vines", "jungle vines", "swamp vines" },
+					{ "fence gates", "wooden gates", "wood gates" },
+					{ "brick stairs", "brick steps", "clay brick stairs", "clay brick steps" },
+					{ "stone brick stairs", "stone brick steps", "stone stairs", "stone steps" },
+					{ "mycelium", "mushroom grass", "shroom grass", "mushroom biome grass" },
+					{ "lily pads", "lilies", "pond lilies", "lilypads", "water lily", "water lilies" },
+					{ "Nether bricks", "Nether fortress bricks", "Nether dungeon bricks" },
+					{ "Nether brick fences", "Nether fortress fences", "Nether dungeon fences" },
+					{ "Nether brick stairs", "Nether fortress stairs", "Nether dungeon stairs", "Nether brick steps", "Nether fortress steps",
+							"Nether dungeon steps" },
+					{ "Nether warts", "Nether mushrooms", "Nether 'shrooms", "Nether fungi" },
+					{ "enchantment tables" },
+					{ "brewing stands" },
+					{ "cauldrons" },
+					{ "End portal blocks" },
+					{ "End portal frame blocks" },
+					{ "End stone", "End blocks" },
+					{ "dragon eggs", "Enderdragon eggs" },
+					{ "redstone lamps", "glowstone lamps" },
+					{ "active redstone lamps", "active glowstone lamps" },
+					{ "wooden double slabs", "double wooden plank slabs", "oak wood double slabs", "oak wood wooden plank slabs", "birch wood double slabs",
+							"double birch wood plank slabs", "spruce wood double slabs", "double spruce wood plank slabs", "jungle wood double slabs",
+							"double jungle wood plank slabs" },
+					{ "wooden slabs", "oak wood slabs", "birch wood slabs", "spruce wood slabs", "jungle wood slabs" },
+					{ "cocoa bean plants", "cocoa bean pods", "cocoa beans" },
+					{ "sandstone stairs", "sandstone steps" },
+					{ "emerald ore" },
+					{ "Ender chests", "Enderchests" },
+					{ "tripwire hooks", "tripwire mechanisms", "trip wire hooks", "trip wire mechanisms" },
+					{ "tripwire", "trip wire" },
+					{ "emerald blocks", "blocks of emerald", "blocks of emeralds" },
+					{ "spruce stairs", "spruce wood stairs", "wooden stairs", "spruce steps", "spruce wood steps", "wooden steps" },
+					{ "birch stairs", "birch wood stairs", "wooden stairs", "birch steps", "birch wood steps", "wooden steps" },
+					{ "jungle stairs", "jungle wood stairs", "wooden stairs", "jungle steps", "jungle wood steps", "wooden steps" },
+					{ "command blocks" },
+					{ "beacons" },
+					{ "cobblestone walls", "stone walls", "mossy cobblestone walls", "mossy stone walls" },
+					{ "flower pots", "pots", "clay pots" },
+					{ "carrots" },
+					{ "potatoes", "potatos" },
+					{ "wooden buttons", "wood buttons" },
+					{ "monster heads", "heads" },
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					{ "iron shovels", "iron spades" },
+					{ "iron pickaxes", "iron picks" },
+					{ "iron axes", "iron hatchets", "iron tree axe" },
+					{ "flint and steel" },
+					{ "apples", "red apples" },
+					{ "bows", "bows and arrows", "longbows", "long bows", "shortbows", "short bows" },
+					{ "arrows" },
+					{ "coal" },
+					{ "diamonds" },
+					{ "iron", "iron ingots" },
+					{ "gold", "gold ingots", "gold bars" },
+					{ "iron swords" },
+					{ "wooden swords", "wood swords" },
+					{ "wooden shovels", "wood shovels", "wooden spades", "wood spades" },
+					{ "wooden pickaxes", "wooden picks", "wood pickaxes", "wood picks" },
+					{ "wooden axes", "wooden hatchets", "wooden tree axes", "wood axes", "wood hatchets", "wood tree axes" },
+					{ "stone swords", "cobblestone swords" },
+					{ "stone shovels", "cobblestone shovels", "stone spades", "cobblestone spades" },
+					{ "stone pickaxes", "stone picks", "cobblestone pickaxes", "cobblestone picks" },
+					{ "stone axes", "stone hatchets", "stone tree axes", "cobblestone axes", "cobblestone hatchets", "cobblestone tree axes" },
+					{ "diamond swords" },
+					{ "diamond shovels", "diamond spades" },
+					{ "diamond pickaxes", "diamond picks" },
+					{ "diamond axes", "diamond hatchets", "diamond tree axes" },
+					{ "sticks", "twigs" },
+					{ "bowls", "wooden bowls", "wood bowls", "soup bowls" },
+					{ "mushroom stew", "mushroom soup", "mooshroom milk", "mooshroom cow milk" },
+					{ "golden swords", "gold swords" },
+					{ "golden shovels", "gold shovels", "golden spades", "gold spades" },
+					{ "golden pickaxes", "golden picks", "gold pickaxes", "gold picks" },
+					{ "golden axes", "golden hatchets", "golden tree axes", "gold axes", "gold hatchets", "gold tree axes" },
+					{ "string" },
+					{ "feathers" },
+					{ "gunpowder", "sulfur", "sulphur" },
+					{ "wooden hoes", "wood hoes" },
+					{ "stone hoes", "cobblestone hoes" },
+					{ "iron hoes" },
+					{ "diamond hoes" },
+					{ "golden hoes", "gold hoes" },
+					{ "seeds", "seed packets" },
+					{ "wheat", "crops" },
+					{ "bread", "bread loaves" },
+					{ "leather caps", "leather helmets", "leather helms" },
+					{ "leather tunics", "leather shirts", "leather chestplates" },
+					{ "leather pants", "leather leggings", "leather chaps" },
+					{ "leather boots", "leather shoes" },
+					{ "chainmail helmets", "chainmail caps", "chainmail helms", "chain helmets", "chain caps", "chain helms" },
+					{ "chainmail chestplates", "chainmail tunics", "chainmail shirts", "chain chestplates", "chain tunics", "chain shirts" },
+					{ "chainmail leggings", "chainmail pants", "chain leggings", "chain pants" },
+					{ "chainmail boots", "chainmail shoes", "chain boots", "chain shoes" },
+					{ "iron helmets", "iron caps", "iron helms" },
+					{ "iron chestplates", "iron tunics", "iron shirts" },
+					{ "iron leggings", "iron pants" },
+					{ "iron boots", "iron shoes" },
+					{ "diamond helmets", "diamond caps", "diamond helms" },
+					{ "diamond chestplates", "diamond tunics", "diamond shirts" },
+					{ "diamond leggings", "diamond pants" },
+					{ "diamond boots", "diamond shoes" },
+					{ "golden helmets", "golden caps", "golden helms", "gold helmets", "gold caps", "gold helms" },
+					{ "golden chestplates", "gold chestplates", "golden tunics", "gold tunics", "golden shirts", "gold shirts" },
+					{ "golden leggings", "gold leggings", "golden pants", "gold pants" },
+					{ "golden boots", "gold boots", "golden shoes", "gold shoes" },
+					{ "flint", "arrowheads" },
+					{ "raw porkchops", "uncooked porkchops" },
+					{ "cooked porkchops", "porkchops" },
+					{ "paintings", "artwork" },
+					{ "golden apples", "gold apples" },
+					{ "signs", "sign posts", "posted signs", "wall signs" },
+					{ "wooden doors", "wood doors" },
+					{ "buckets", "pails" },
+					{ "buckets of water", "water buckets" },
+					{ "buckets of lava", "lava buckets" },
+					{ "minecarts", "mine carts", "minecars", "mine cars", "rail cars" },
+					{ "saddles", "pig saddles" },
+					{ "iron doors", "metal doors" },
+					{ "redstone dust", "redstone wire", "wire", "redstone powder" },
+					{ "snowballs" },
+					{ "boats", "wooden boats", "wood boats", "rafts", "wood rafts", "wooden rafts" },
+					{ "leather", "cow hides", "cow skin", "cowskin" },
+					{ "milk", "leche", "bucket of milk", "buckets of milk", "pail of milk", "pails of milk" },
+					{ "bricks", "clay bricks" },
+					{ "clay" },
+					{ "sugarcane", "sugarcanes", "sugar canes" },
+					{ "papers" },
+					{ "books" },
+					{ "slimeballs", "slime balls" },
+					{ "storage minecarts", "storage minecars", "storage mine cars", "storage rail cars", "chest minecarts", "chest minecars",
+							"chest mine cars", "chest rail cars", "minecarts with chests", "minecars with chests", "mine cars with chests",
+							"rail cars with chests" },
+					{ "powered minecarts", "powered minecars", "powered mine cars", "powered rail cars", "furnace minecarts", "furnace minecars",
+							"furnace mine cars", "furnace rail cars", "minecarts with furnaces", "minecars with furnaces", "mine cars with furnaces",
+							"rail cars with furnaces" },
+					{ "eggs", "chicken eggs" },
+					{ "compasses" },
+					{ "fishing rods", "fishing poles" },
+					{ "clocks", "watches", "pocketwatches", "pocket watches" },
+					{ "glowstone dust" },
+					{ "raw fish", "uncooked fish", "raw fish", "uncooked fish", "sushi" },
+					{ "cooked fish", "fish" },
+					{ "wool dyes", "dyes" },
+					{ "bones" },
+					{ "sugar", "processed sugar", "powdered sugar", "raw sugar", "baker's sugar" },
+					{ "cakes", "birthday cakes" },
+					{ "beds" },
+					{ "repeaters", "diodes", "delayers", "redstone repeaters", "redstone diodes", "redstone delayers" },
+					{ "cookies", "chocolate chip cookies", "oatmeal raisin cookies" },
+					{ "maps", "atlases", "charts" },
+					{ "shears", "clippers" },
+					{ "melon slices", "slices of melon" },
+					{ "pumpkin seeds" },
+					{ "melon seeds" },
+					{ "raw beef", "uncooked beef", "uncooked steak" },
+					{ "cooked beef", "beef", "steak" },
+					{ "raw chickens", "uncooked chickens" },
+					{ "cooked chickens", "chickens" },
+					{ "rotten flesh", "rotted flesh", "flesh", "zombie flesh", "zombie meat" },
+					{ "Ender pearls", "Enderman pearls" },
+					{ "Blaze rods", "glowsticks", "glow sticks" },
+					{ "Ghast tears", "tears" },
+					{ "gold nuggets", "golden nuggets", "gold pieces", "pieces of gold" },
+					{ "Nether warts", "Nether mushrooms", "Nether 'shrooms", "Nether fungi" },
+					{ "potions" },
+					{ "glass bottles" },
+					{ "spider eyes" },
+					{ "fermented spider eyes" },
+					{ "Blaze powder" },
+					{ "Magma cream" },
+					{ "brewing stands" },
+					{ "cauldrons", "kettles", "pots" },
+					{ "Eyes of Ender", "Endereyes", "Ender Eyes" },
+					{ "glistening melon", "glistening melon slices", "gold melon slices", "golden melon slices", "shining melon slices" },
+					{ "spawn eggs", "spawner eggs" },
+					{ "Bottles o' Enchanting", "xp bottles", "exp bottles", "level botties", "experience bottles" },
+					{ "fire charges", "fireballs", "cannonballs", "Ghast cannonballs", "Blaze cannonballs", "Ghast fireballs", "Blaze fireballs" },
+					{ "books and quills", "book and quill" },
+					{ "written-in books", "written books", "novels", "texts" },
+					{ "emeralds" },
+					{ "frames", "item frames" },
+					{ "flower pots", "potted flowers", "potted plants" },
+					{ "carrots" },
+					{ "potatoes", "raw potatoes" },
+					{ "baked potatoes", "cooked potatoes", "mashed potatoes" },
+					{ "poisonous potatoes", "poison potatoes", "bad potatoes" },
+					{ "maps", "charts", "atlases" },
+					{ "golden carrots", "gold carrots", "glistening carrots", "shiny carrots" },
+					{ "monster heads", "heads" },
+					{ "carrots on sticks", "carrots on fishing rods", "carrots on fishing poles", "pig controller" },
+					{ "Nether Stars" },
+					{ "pumpkin pies" },
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					{ "\"13\" music discs", "\"13\" discs", "\"13\" records", "\"13\" CDs", "13 music disc", "13 CDs", "13 discs", "13 records" },
+					{ "\"cat\" music discs", "\"cat\" discs", "\"cat\" records", "\"cat\" CDs", "cat music disc", "cat CDs", "cat discs", "cat records" },
+					{ "\"blocks\" music discs", "\"blocks\" discs", "\"blocks\" records", "\"blocks\" CDs", "blocks music disc", "blocks CDs", "blocks discs",
+							"blocks records" },
+					{ "\"chirp\" music discs", "\"chirp\" discs", "\"chirp\" records", "\"chirp\" CDs", "chirp music disc", "chirp CDs", "chirp discs",
+							"chirp records" },
+					{ "\"far\" music discs", "\"far\" discs", "\"far\" records", "\"far\" CDs", "far music disc", "far CDs", "far discs", "far records" },
+					{ "\"mall\" music discs", "\"mall\" discs", "\"mall\" records", "\"mall\" CDs", "mall music disc", "mall CDs", "mall discs", "mall records" },
+					{ "\"mellohi\" music discs", "\"mellohi\" discs", "\"mellohi\" records", "\"mellohi\" CDs", "mellohi music disc", "mellohi CDs",
+							"mellohi discs", "mellohi records" },
+					{ "\"stal\" music discs", "\"stal\" discs", "\"stal\" records", "\"stal\" CDs", "stal music disc", "stal CDs", "stal discs", "stal records" },
+					{ "\"strad\" music discs", "\"strad\" discs", "\"strad\" records", "\"strad\" CDs", "strad music disc", "strad CDs", "strad discs",
+							"strad records" },
+					{ "\"ward\" music discs", "\"ward\" discs", "\"ward\" records", "\"ward\" CDs", "ward music disc", "ward CDs", "ward discs", "ward records" },
+					{ "\"11\" music discs", "\"11\" discs", "\"11\" records", "\"11\" CDs", "11 music disc", "11 CDs", "11 discs", "11 records" } };
 	private HashMap<String, String> epithets_by_user = new HashMap<String, String>();
-	private HashMap<String[], String> item_recipes = new HashMap<String[], String>();
-	private HashMap<String, Double> myConomy_accounts = new HashMap<String, Double>();
-	private HashMap<String, ArrayList<String>> death_messages_by_cause = new HashMap<String, ArrayList<String>>();
+	private HashMap<String, ArrayList<String>> death_messages_by_cause = new HashMap<String, ArrayList<String>>(),
+			default_death_messages = new HashMap<String, ArrayList<String>>();
 	private HashMap<Player, String> message_beginnings = new HashMap<Player, String>(), command_beginnings = new HashMap<Player, String>();
+	private HashMap<String, Boolean> player_votes = new HashMap<String, Boolean>();
 	private static ArrayList<String> strings_to_correct = new ArrayList<String>(), corrected_strings = new ArrayList<String>(),
 			unless_strings = new ArrayList<String>(), AFK_players = new ArrayList<String>(), players_who_have_accepted_the_rules = new ArrayList<String>(),
 			players_who_have_read_the_rules = new ArrayList<String>(), login_messages = new ArrayList<String>(), logout_messages = new ArrayList<String>();
-	private static HashMap<Enchantment, String> enchantment_names = new HashMap<Enchantment, String>();
 	private static ArrayList<Boolean> true_means_before = new ArrayList<Boolean>();
 	private static String rules = "", default_epithet = "", default_message_format = "", say_format = "";
 	private static boolean players_must_accept_rules = true, AutoCorrect_on = true, capitalize_first_letter = true, end_with_period = true,
 			change_all_caps_to_italics = true, cover_up_profanities = true, insert_command_usages = true, true_username_required = true,
 			display_death_messages = true, monetary_symbol_comes_before = false;
 
-	// TODO: set up config questions for true_username_required and
-	// cover_up_profanities and insert_command_usages
+	// TODO: the AutoCorrections go to default no matter what. Fix it.
+	// TODO: set up config questions for true_username_required
+	// TODO: fix abbreviation screwups
+	// TODO: fix insert command usages
+	// TODO: finish information parts: item IDs, recipes, and potion recipes
+	// (/potion)
 
 	// plugin enable/disable and the command operator
 	public void onEnable() {
 		server = getServer();
 		console = server.getConsoleSender();
 		server.getPluginManager().registerEvents(this, this);
-		// input enchantment names
-		enchantment_names.put(Enchantment.ARROW_DAMAGE, "Power");
-		enchantment_names.put(Enchantment.ARROW_FIRE, "Flame");
-		enchantment_names.put(Enchantment.ARROW_INFINITE, "Infinite");
-		enchantment_names.put(Enchantment.ARROW_KNOCKBACK, "Punch");
-		enchantment_names.put(Enchantment.DAMAGE_ALL, "Sharpness");
-		enchantment_names.put(Enchantment.DAMAGE_ARTHROPODS, "Bane of Arthropods");
-		enchantment_names.put(Enchantment.DAMAGE_UNDEAD, "Smite");
-		enchantment_names.put(Enchantment.DIG_SPEED, "Efficiency");
-		enchantment_names.put(Enchantment.DURABILITY, "Unbreaking");
-		enchantment_names.put(Enchantment.FIRE_ASPECT, "Fire Aspect");
-		enchantment_names.put(Enchantment.KNOCKBACK, "Knockback");
-		enchantment_names.put(Enchantment.LOOT_BONUS_BLOCKS, "Fortune");
-		enchantment_names.put(Enchantment.LOOT_BONUS_MOBS, "Looting");
-		enchantment_names.put(Enchantment.OXYGEN, "Respiration");
-		enchantment_names.put(Enchantment.PROTECTION_ENVIRONMENTAL, "Protection");
-		enchantment_names.put(Enchantment.PROTECTION_EXPLOSIONS, "Blast Protection");
-		enchantment_names.put(Enchantment.PROTECTION_FALL, "Feather Falling");
-		enchantment_names.put(Enchantment.PROTECTION_FIRE, "Fire Protection");
-		enchantment_names.put(Enchantment.PROTECTION_PROJECTILE, "Projectile Protection");
-		enchantment_names.put(Enchantment.SILK_TOUCH, "Silk Touch");
-		enchantment_names.put(Enchantment.WATER_WORKER, "Aqua Affinity");
-		// input item recipes
-		item_recipes.put(new String[] { "wooden planks", "wood planks", "planks" }, ChatColor.AQUA + "Just craft any kind of wood (logs).");
-		item_recipes.put(new String[] { "glass" }, ChatColor.AQUA + "Cook sand.");
-		item_recipes.put(new String[] { "lapis lazuli blocks", "lapis blocks" }, "&1lapis lazuli\nLLL\nLLL\nLLL");
-		item_recipes.put(new String[] { "dispenser", "shooter" }, "&8cobblestone&f, bow, &4redstone dust\n&8CCC\nC&fB&8C\nC&4R&8C");
-		item_recipes.put(new String[] { "sandstone", "sand brick", "sandbrick", "sand stone" }, "&esand\n&0---\n-&eSS\n&0-&eSS");
-		item_recipes.put(new String[] { "note block", "music block", "sound block", "speaker" },
-				"&e&m&nwooden planks&f, &4redstone dust\n&e&m&nWWW\nW&4R&e&m&nW\nWWW");
-		item_recipes.put(new String[] { "bed" }, "wool, &e&m&nwooden planks\n&0---\n&fWWW\n&e&m&nWWW");
-		item_recipes.put(new String[] { "powered rails", "redstone rails", "powered railroad tracks", "redstone railroad tracks" },
-				"&6gold&f, &e&msticks&f, &4redstone dust\n&6G&0-&6G\nG&f&e&mS&6G\nG&4R&6G");
-		item_recipes.put(new String[] { "detector rails", "detection rails", "sensor rails", "sensory rails", "pressure rails", "pressure plate rails",
-				"detector railroad tracks", "detection railroad tracks", "sensor railroad tracks", "sensory railroad tracks", "pressure railroad tracks",
-				"pressure plate railroad tracks" }, "&7iron ingots&f, &8&nstone pressure plate&f, &4redstone dust\n&7I&0-&7I\nI&8&nS&7I\nI&4R&7I");
-		item_recipes.put(new String[] { "sticky pistons", "slimy pistons" }, "&aslimeballs&f, &e&npistons\n&0---\n-&aS&0-\n-&e&nP&0-");
-		item_recipes.put(new String[] { "pistons" }, "&e&m&nwooden planks&f, &8cobblestone&f, &7iron ingots&f, &4redstone dust\n&e&m&nWWW\n&8C&7I&8C\nC&4R&8C");
-		item_recipes.put(new String[] { "wool blocks" }, "string\n&0---\n-&fSS\n&0-&fSS");
-		item_recipes.put(new String[] { "gold", "golden", "blocks" }, "&6gold ingots\nGGG\nGGG\nGGG");
-		item_recipes.put(new String[] { "iron blocks", "blocks of iron", "block of iron" }, "&7iron ingots\nIII\nIII\nIII");
-		item_recipes.put(new String[] { "slabs", "half blocks" },
-				"&5&kM &fcan be cobblestone, stone, stone bricks, wooden planks, bricks, or sandstone\n&0---\n---          &bx6\n&5&kMMM");
-		item_recipes.put(new String[] { "bricks", "brick blocks" }, "&cBricks &fcan be made by cooking clay.\n&0---\n-&cBB\n&0-&cBB");
-		item_recipes.put(new String[] { "TNT", "T.N.T.", "dynamite", "trinitrotoluene" }, "&esand&f, gunpowder\nG&eS&fG\n&eS&fG&eS\n&fG&eS&fG");
-		item_recipes.put(new String[] { "bookshelf", "bookshelves", "bookcases" }, "&e&m&nwooden planks&f, &cbooks\n&e&m&nWWW\n&cBBB\n&e&m&nWWW");
-		item_recipes.put(new String[] { "torches", "fire sticks" }, "coal or charcoal, &e&msticks\n&0---\n-&fC&0-\n-&e&mS&0-");
 		loadTheEpithets(console);
 		loadTheAutoCorrections(console);
 		loadTheDeathMessages(console);
 		loadTheLoginMessages(console);
 		loadTheLogoutMessages(console);
 		loadTheRules(console);
+		// done enabling
+		String enable_message = enable_messages[(int) (Math.random() * enable_messages.length)];
+		console.sendMessage(ChatColor.BLUE + enable_message);
+		for (Player player : server.getOnlinePlayers())
+			if (player.isOp())
+				player.sendMessage(ChatColor.BLUE + enable_message);
 	}
 
 	public void onDisable() {
@@ -141,11 +2439,17 @@ public class myScribe extends JavaPlugin implements Listener {
 		saveTheLoginMessages(console, true);
 		saveTheLogoutMessages(console, true);
 		saveTheRules(console, true);
+		// done disabling
+		String disable_message = disable_messages[(int) (Math.random() * disable_messages.length)];
+		console.sendMessage(ChatColor.BLUE + disable_message);
+		for (Player player : server.getOnlinePlayers())
+			if (player.isOp())
+				player.sendMessage(ChatColor.BLUE + disable_message);
 	}
 
-	public boolean onCommand(CommandSender sender, Command command, String command_label, String[] my_parameters) {
+	public boolean onCommand(CommandSender sender, Command cmd, String command, String[] my_parameters) {
 		parameters = my_parameters;
-		if ((command_label.equalsIgnoreCase("myScribe") || command_label.equalsIgnoreCase("mS"))
+		if ((command.equalsIgnoreCase("myScribe") || command.equalsIgnoreCase("mS"))
 				&& parameters.length > 1
 				&& parameters[0].equalsIgnoreCase("load")
 				&& (parameters[1].toLowerCase().startsWith("e") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2]
@@ -153,19 +2457,19 @@ public class myScribe extends JavaPlugin implements Listener {
 			if (!(sender instanceof Player) || sender.isOp())
 				loadTheEpithets(sender);
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.BLUE + "/myChat load" + ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.BLUE + "/myScribe load" + ChatColor.RED + ".");
 			return true;
-		} else if ((command_label.equalsIgnoreCase("myScribe") || command_label.equalsIgnoreCase("mS"))
+		} else if ((command.equalsIgnoreCase("myScribe") || command.equalsIgnoreCase("mS"))
 				&& parameters.length > 1
 				&& parameters[0].equalsIgnoreCase("load")
-				&& (parameters[1].toLowerCase().startsWith("A") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2]
-						.toLowerCase().startsWith("A")))) {
+				&& (parameters[1].toLowerCase().startsWith("a") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2]
+						.toLowerCase().startsWith("a")))) {
 			if (!(sender instanceof Player) || sender.isOp())
 				loadTheAutoCorrections(sender);
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.BLUE + "/myChat load" + ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.BLUE + "/myScribe load" + ChatColor.RED + ".");
 			return true;
-		} else if ((command_label.equalsIgnoreCase("myScribe") || command_label.equalsIgnoreCase("mS"))
+		} else if ((command.equalsIgnoreCase("myScribe") || command.equalsIgnoreCase("mS"))
 				&& parameters.length > 1
 				&& parameters[0].equalsIgnoreCase("load")
 				&& (parameters[1].toLowerCase().startsWith("d") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2]
@@ -173,9 +2477,9 @@ public class myScribe extends JavaPlugin implements Listener {
 			if (!(sender instanceof Player) || sender.isOp())
 				loadTheDeathMessages(sender);
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.BLUE + "/myChat load" + ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.BLUE + "/myScribe load" + ChatColor.RED + ".");
 			return true;
-		} else if ((command_label.equalsIgnoreCase("myScribe") || command_label.equalsIgnoreCase("mS"))
+		} else if ((command.equalsIgnoreCase("myScribe") || command.equalsIgnoreCase("mS"))
 				&& parameters.length > 1
 				&& parameters[0].equalsIgnoreCase("load")
 				&& (parameters[1].toLowerCase().startsWith("login")
@@ -185,9 +2489,9 @@ public class myScribe extends JavaPlugin implements Listener {
 			if (!(sender instanceof Player) || sender.isOp())
 				loadTheLoginMessages(sender);
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.BLUE + "/myChat load" + ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.BLUE + "/myScribe load" + ChatColor.RED + ".");
 			return true;
-		} else if ((command_label.equalsIgnoreCase("myScribe") || command_label.equalsIgnoreCase("mS"))
+		} else if ((command.equalsIgnoreCase("myScribe") || command.equalsIgnoreCase("mS"))
 				&& parameters.length > 1
 				&& parameters[0].equalsIgnoreCase("load")
 				&& (parameters[1].toLowerCase().startsWith("logout")
@@ -197,9 +2501,9 @@ public class myScribe extends JavaPlugin implements Listener {
 			if (!(sender instanceof Player) || sender.isOp())
 				loadTheLogoutMessages(sender);
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.BLUE + "/myChat load" + ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.BLUE + "/myScribe load" + ChatColor.RED + ".");
 			return true;
-		} else if ((command_label.equalsIgnoreCase("myScribe") || command_label.equalsIgnoreCase("mS"))
+		} else if ((command.equalsIgnoreCase("myScribe") || command.equalsIgnoreCase("mS"))
 				&& parameters.length > 1
 				&& parameters[0].equalsIgnoreCase("load")
 				&& (parameters[1].toLowerCase().startsWith("r") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2]
@@ -207,12 +2511,9 @@ public class myScribe extends JavaPlugin implements Listener {
 			if (!(sender instanceof Player) || sender.isOp())
 				loadTheRules(sender);
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.BLUE + "/myChat load" + ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.BLUE + "/myScribe load" + ChatColor.RED + ".");
 			return true;
-		}
-		// TODO add loading logout messages and rules
-		else if ((command_label.equalsIgnoreCase("myScribe") || command_label.equalsIgnoreCase("mS")) && parameters.length > 0
-				&& parameters[0].equalsIgnoreCase("load")) {
+		} else if ((command.equalsIgnoreCase("myScribe") || command.equalsIgnoreCase("mS")) && parameters.length > 0 && parameters[0].equalsIgnoreCase("load")) {
 			if (!(sender instanceof Player) || sender.isOp()) {
 				loadTheEpithets(sender);
 				loadTheAutoCorrections(sender);
@@ -221,13 +2522,12 @@ public class myScribe extends JavaPlugin implements Listener {
 				loadTheLogoutMessages(sender);
 				loadTheRules(sender);
 			} else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.BLUE + "/myChat load" + ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.BLUE + "/myScribe load" + ChatColor.RED + ".");
 			return true;
 		}
 		// TODO add partial saves
-		else if ((command_label.equalsIgnoreCase("myScribe") || command_label.equalsIgnoreCase("mS")) && parameters.length > 0
-				&& parameters[0].equalsIgnoreCase("save")) {
-			if (!(sender instanceof Player) || sender.hasPermission("mychat.admin")) {
+		else if ((command.equalsIgnoreCase("myScribe") || command.equalsIgnoreCase("mS")) && parameters.length > 0 && parameters[0].equalsIgnoreCase("save")) {
+			if (!(sender instanceof Player) || sender.hasPermission("myscribe.admin")) {
 				saveTheEpithets(sender, true);
 				saveTheAutoCorrectSettings(sender, true);
 				saveTheDeathMessages(sender, true);
@@ -235,38 +2535,37 @@ public class myScribe extends JavaPlugin implements Listener {
 				saveTheLogoutMessages(sender, true);
 				saveTheRules(sender, true);
 			} else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.BLUE + "/myChat save" + ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.BLUE + "/myScribe save" + ChatColor.RED + ".");
 			return true;
-		} else if (command_label.equalsIgnoreCase("epithet")) {
-			if (parameters.length > 0 && (!(sender instanceof Player) || sender.hasPermission("mychat.epithet")))
+		} else if (command.equalsIgnoreCase("epithet")) {
+			if (parameters.length > 0 && (!(sender instanceof Player) || sender.hasPermission("myscribe.epithet")))
 				changeEpithet(sender);
 			else if (parameters.length > 0)
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to change your epithet.");
 			else
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what I should change your epithet to!");
 			return true;
-		} else if (command_label.equalsIgnoreCase("correct")) {
-			if (parameters.length >= 2 && (!(sender instanceof Player) || sender.hasPermission("mychat.correct") || sender.hasPermission("mychat.admin")))
+		} else if (command.equalsIgnoreCase("correct")) {
+			if (parameters.length >= 2 && (!(sender instanceof Player) || sender.hasPermission("myscribe.correct") || sender.hasPermission("myscribe.admin")))
 				addCorrection(sender);
-			else if (sender instanceof Player && !sender.hasPermission("mychat.correct"))
+			else if (sender instanceof Player && !sender.hasPermission("myscribe.correct"))
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to create your own AutoCorrections.");
 			else
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what correction you want to make!");
 			return true;
-		} else if (command_label.equalsIgnoreCase("afklist")
-				|| (command_label.equalsIgnoreCase("afk") && parameters.length > 0 && parameters[0].equalsIgnoreCase("list"))) {
+		} else if (command.equalsIgnoreCase("afklist") || (command.equalsIgnoreCase("afk") && parameters.length > 0 && parameters[0].equalsIgnoreCase("list"))) {
 			AFKList(sender, false);
 			return true;
-		} else if (command_label.equalsIgnoreCase("afk") && parameters.length > 0) {
+		} else if (command.equalsIgnoreCase("afk") && parameters.length > 0) {
 			AFKCheck(sender);
 			return true;
-		} else if (command_label.equalsIgnoreCase("afk")) {
+		} else if (command.equalsIgnoreCase("afk")) {
 			if (sender instanceof Player)
 				AFKToggle(sender);
 			else
 				sender.sendMessage(ChatColor.RED + "You're a console! You can't be away from the keyboard! You're IN the computer!");
 			return true;
-		} else if (command_label.equalsIgnoreCase("rules")) {
+		} else if (command.equalsIgnoreCase("rules")) {
 			if (!rules.equals("")) {
 				if (sender instanceof Player)
 					players_who_have_read_the_rules.add(sender.getName());
@@ -274,7 +2573,7 @@ public class myScribe extends JavaPlugin implements Listener {
 			} else
 				sender.sendMessage(ChatColor.RED + "As I said, the rules haven't been written down yet, so you can't read them right now. Sorry.");
 			return true;
-		} else if (command_label.equalsIgnoreCase("accept")) {
+		} else if (command.equalsIgnoreCase("accept")) {
 			if (!(sender instanceof Player) || sender.isOp())
 				sender.sendMessage(ChatColor.RED + "You don't need to accept the rules! YOU MADE THE RULES!");
 			else if (players_who_have_read_the_rules.contains(sender.getName()) && !players_who_have_accepted_the_rules.contains(sender.getName())) {
@@ -287,22 +2586,10 @@ public class myScribe extends JavaPlugin implements Listener {
 			else
 				sender.sendMessage(ChatColor.RED + "I already told you: you don't have to accept the rules right now. They haven't been written down yet.");
 			return true;
-		} else if (command_label.toLowerCase().startsWith("color") || command_label.equalsIgnoreCase("codes")) {
-			sender.sendMessage(colorCode("&00 &11 &22 &33 &44 &55 &66 &77 &88 &99 &aa &bb &cc &dd &ee &ff &kk&f(k) &f&ll &f&mm &f&nn &f&oo"));
+		} else if (command.toLowerCase().startsWith("color") || command.equalsIgnoreCase("codes")) {
+			sender.sendMessage(colorCode("&00 &11 &22 &33 &44 &55 &66 &77 &88 &99 &aa &bb &cc &dd &ee &ff &kk&f(k) &f&ll&f &mm&f &nn&f &oo"));
 			return true;
-		} else if (command_label.equalsIgnoreCase("enchant") || command_label.equalsIgnoreCase("ench")) {
-			if (!(sender instanceof Player))
-				sender.sendMessage(ChatColor.RED
-						+ "Okay. Sure. Let me just...-_- You're a console. You know you're not holding any enchantable items right? ...'cause you have no hands? ...'cause YOU'RE A CONSOLE!?");
-			else if (!sender.isOp())
-				sender.sendMessage(ChatColor.RED
-						+ "Sorry, but you don't have permission to enchant items at your whim. You have to kill monsters and mine and earn those levels just like everyone else.");
-			else if (parameters.length == 0)
-				sender.sendMessage(ChatColor.RED + "You forgot to tell me what enchantment you want to put on it!");
-			else
-				enchantItem(sender);
-			return true;
-		} else if (command_label.equalsIgnoreCase("say")) {
+		} else if (command.equalsIgnoreCase("say")) {
 			if (!(sender instanceof Player) || sender.isOp()) {
 				String message = "";
 				for (String parameter : parameters)
@@ -310,124 +2597,17 @@ public class myScribe extends JavaPlugin implements Listener {
 				server.broadcastMessage(colorCode(replace(say_format, "[message]", AutoCorrect(message), null, true, false)));
 			} else
 				sender.sendMessage(ChatColor.RED + "Only ops have permission to broadcast messages with " + ChatColor.BLUE + "/say" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("announce") || command_label.equalsIgnoreCase("declare") || command_label.equalsIgnoreCase("decree")) {
+		} else if (command.equalsIgnoreCase("announce") || command.equalsIgnoreCase("declare") || command.equalsIgnoreCase("decree")) {
 			// TODO
-		} else if (command_label.equalsIgnoreCase("enable") || command_label.equalsIgnoreCase("en")) {
-			if (sender instanceof Player && !sender.isOp())
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to enable and disable plugins.");
-			else if (parameters.length == 0)
-				sender.sendMessage(ChatColor.RED + "You forgot to tell me which plugin to enable!");
-			else {
-				for (Plugin target : server.getPluginManager().getPlugins())
-					if (target.getName().toLowerCase().startsWith(parameters[0].toLowerCase())) {
-						if (!target.isEnabled()) {
-							server.getPluginManager().enablePlugin(target);
-							sender.sendMessage(ChatColor.BLUE + target.getName() + " has been enabled.");
-						} else
-							sender.sendMessage(ChatColor.RED + target.getName() + " is already enabled.");
-						return true;
-					}
-				sender.sendMessage(ChatColor.RED + "Sorry, but I couldn't find a plugin called \"" + parameters[0] + ".\"");
-			}
-			return true;
-		} else if (command_label.equalsIgnoreCase("disable") || command_label.equalsIgnoreCase("dis")) {
-			if (sender instanceof Player && !sender.isOp())
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to enable and disable plugins.");
-			else if (parameters.length == 0)
-				sender.sendMessage(ChatColor.RED + "You forgot to tell me which plugin to disable!");
-			else {
-				for (Plugin target : server.getPluginManager().getPlugins())
-					if (target.getName().toLowerCase().startsWith(parameters[0].toLowerCase())) {
-						if (target.isEnabled()) {
-							server.getPluginManager().disablePlugin(target);
-							sender.sendMessage(ChatColor.BLUE + target.getName() + " has been disbabled.");
-						} else
-							sender.sendMessage(ChatColor.RED + target.getName() + " is already disabled.");
-						return true;
-					}
-				sender.sendMessage(ChatColor.RED + "Sorry, but I couldn't find a plugin called \"" + parameters[0] + ".\"");
-			}
-			return true;
-		} else if (command_label.equalsIgnoreCase("recipe") || command_label.equalsIgnoreCase("craft")) {
+		} else if (command.equalsIgnoreCase("recipe") || command.equalsIgnoreCase("craft")) {
 			if (parameters.length == 0)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what item you want the recipe for!");
 			else
 				getRecipe(sender);
-		} else if (command_label.equalsIgnoreCase("ids") || command_label.equalsIgnoreCase("id")) {
-			if (parameters.length == 0)
-				sender.sendMessage(ChatColor.RED + "You forgot to give me an I.D. or an item name!");
-			else {
-				String query = "";
-				for (String parameter : parameters)
-					if (query.equals(""))
-						query = parameter;
-					else
-						query = query + " " + parameter;
-				try {
-					int id = Integer.parseInt(query);
-					String item = item_IDs[id][0];
-					if (item != null)
-						sender.sendMessage(ChatColor.BLUE + item + " has the I.D. " + id);
-					else
-						sender.sendMessage(ChatColor.RED + "No item has the I.D. " + id);
-				} catch (NumberFormatException exception) {
-					for (int id = 0; id < item_IDs.length; id++)
-						for (String item_name : item_IDs[id])
-							if (item_name.toLowerCase().startsWith(query.toLowerCase())) {
-								sender.sendMessage(ChatColor.BLUE + item_name + " has the I.D. " + id + ".");
-								return true;
-							}
-					if (query.toLowerCase().startsWith("a") || query.toLowerCase().startsWith("e") || query.toLowerCase().startsWith("i")
-							|| query.toLowerCase().startsWith("o") || query.toLowerCase().startsWith("u"))
-						sender.sendMessage(ChatColor.RED + "Sorry, but I don't know what an \"" + query + "\" is.");
-					else
-						sender.sendMessage(ChatColor.RED + "Sorry, but I don't know what a \"" + query + "\" is.");
-				}
-			}
+		} else if (command.equalsIgnoreCase("ids") || command.equalsIgnoreCase("id")) {
+			id(sender);
 			return true;
-		} else if (((command_label.equalsIgnoreCase("money") || command_label.equalsIgnoreCase("cash") || command_label.equalsIgnoreCase("funds"))
-				&& parameters.length > 0 && parameters[0].equalsIgnoreCase("top"))
-				|| command_label.equalsIgnoreCase("richest") || command_label.equalsIgnoreCase("wealthiest")) {
-			ArrayList<String> richest_people = new ArrayList<String>();
-			for (Object key : myConomy_accounts.keySet().toArray()) {
-				String player = (String) key;
-				int insertion_index = richest_people.size() - 1;
-				for (String rich_person : richest_people) {
-					if (myConomy_accounts.get(player) != null && myConomy_accounts.get(player) > myConomy_accounts.get(richest_people))
-						insertion_index--;
-				}
-				// TODO
-			}
-			return true;
-		} else if (command_label.equalsIgnoreCase("money") || command_label.equalsIgnoreCase("cash") || command_label.equalsIgnoreCase("funds")) {
-			if (!(sender instanceof Player) && parameters.length == 0)
-				sender.sendMessage(ChatColor.RED + "Consoles can't have money! Duh! They would just spend it all on shoes!");
-			else {
-				String target = sender.getName();
-				if (parameters.length > 0)
-					target = parameters[0];
-				for (Object key : myConomy_accounts.keySet().toArray()) {
-					String account_holder = (String) key;
-					if (account_holder.toLowerCase().startsWith(target.toLowerCase()))
-						if (sender instanceof Player && account_holder.equals(sender.getName()) && sender.hasPermission("myscribe.money"))
-							if (monetary_symbol_comes_before)
-								sender.sendMessage(ChatColor.BLUE + "You have " + monetary_symbol + myConomy_accounts.get(account_holder) + ".");
-							else
-								sender.sendMessage(ChatColor.BLUE + "You have " + myConomy_accounts.get(account_holder) + monetary_symbol + ".");
-						else if (!(sender instanceof Player) || (!account_holder.equals(sender.getName()) && sender.hasPermission("myscirbe.money.other")))
-							if (monetary_symbol_comes_before)
-								sender.sendMessage(ChatColor.BLUE + account_holder + " has " + monetary_symbol + myConomy_accounts.get(account_holder) + ".");
-							else
-								sender.sendMessage(ChatColor.BLUE + account_holder + " has " + myConomy_accounts.get(account_holder) + monetary_symbol + ".");
-						else if (!sender.hasPermission("myscribe.money"))
-							sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use the monetary system.");
-						else
-							sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to see other people's money.");
-					break;
-				}
-			}
-			return true;
-		} else if (command_label.equals("trade") || command_label.equals("exchange")) {
+		} else if (command.equals("trade") || command.equals("exchange")) {
 			// TODO
 		}
 		return false;
@@ -436,29 +2616,69 @@ public class myScribe extends JavaPlugin implements Listener {
 	// intra-command methods
 	private String AutoCorrect(String message) {
 		if (AutoCorrect_on && !message.startsWith("http") && !message.startsWith("www.")) {
-			while (message.endsWith("/") || message.endsWith(",") || message.endsWith(">"))
+			while ((message.endsWith("/") && !message.endsWith(":/")) || message.endsWith(",") || message.endsWith(">"))
 				message = message.substring(0, message.length() - 1);
 			// use spaces to make punctuation separate words
 			if (message.length() > 1)
 				for (int i = 1; i < message.length(); i++)
-					if (!message.substring(i - 1, i).toLowerCase().equals(message.substring(i - 1, i).toUpperCase())
+					if ((!message.substring(i - 1, i).toLowerCase().equals(message.substring(i - 1, i).toUpperCase())
+							|| message.substring(i - 1, i).equals("0") || message.substring(i - 1, i).equals("1") || message.substring(i - 1, i).equals("2")
+							|| message.substring(i - 1, i).equals("3") || message.substring(i - 1, i).equals("4") || message.substring(i - 1, i).equals("5")
+							|| message.substring(i - 1, i).equals("6") || message.substring(i - 1, i).equals("7") || message.substring(i - 1, i).equals("8") || message
+							.substring(i - 1, i).equals("9"))
 							&& message.substring(i, i + 1).toLowerCase().equals(message.substring(i, i + 1).toUpperCase())
-							&& !message.substring(i, i + 1).equals(" ") && !message.substring(i, i + 1).equals("'")
-							&& (i + 2 > message.length() || !isColorCode(message.substring(i, i + 2), null, null))) {
-						try {
-							Integer.parseInt(message.substring(i, i + 1));
-						} catch (NumberFormatException exception) {
-							message = message.substring(0, i) + " " + message.substring(i);
-						}
-					}
+							&& !message.substring(i, i + 1).equals(" ")
+							&& !message.substring(i, i + 1).equals("'")
+							&& !message.substring(i, i + 1).equals("\\")
+							&& !message.substring(i, i + 1).equals("-")
+							&& !message.substring(i, i + 1).equals("_")
+							&& (i + 2 > message.length() || !isColorCode(message.substring(i, i + 2), null, null))
+							&& !message.substring(i, i + 1).equals("0")
+							&& !message.substring(i, i + 1).equals("1")
+							&& !message.substring(i, i + 1).equals("2")
+							&& !message.substring(i, i + 1).equals("3")
+							&& !message.substring(i, i + 1).equals("4")
+							&& !message.substring(i, i + 1).equals("5")
+							&& !message.substring(i, i + 1).equals("6")
+							&& !message.substring(i, i + 1).equals("7")
+							&& !message.substring(i, i + 1).equals("8")
+							&& !message.substring(i, i + 1).equals("9"))
+						message = message.substring(0, i) + " " + message.substring(i);
+					else if ((!message.substring(i, i + 1).toLowerCase().equals(message.substring(i, i + 1).toUpperCase())
+							|| message.substring(i, i + 1).equals("0") || message.substring(i, i + 1).equals("1") || message.substring(i, i + 1).equals("2")
+							|| message.substring(i, i + 1).equals("3") || message.substring(i, i + 1).equals("4") || message.substring(i, i + 1).equals("5")
+							|| message.substring(i, i + 1).equals("6") || message.substring(i, i + 1).equals("7") || message.substring(i, i + 1).equals("8") || message
+							.substring(i, i + 1).equals("9"))
+							&& message.substring(i - 1, i).toLowerCase().equals(message.substring(i - 1, i).toUpperCase())
+							&& !message.substring(i - 1, i).equals(" ")
+							&& !message.substring(i - 1, i).equals("'")
+							&& !message.substring(i - 1, i).equals("\\")
+							&& !message.substring(i - 1, i).equals("-")
+							&& !message.substring(i - 1, i).equals("_")
+							&& !((message.substring(i - 1, i).equals(":") || message.substring(i - 1, i).equals(";") || message.substring(i - 1, i).equals("=")) && (i + 1 >= message
+									.length() || message.substring(i + 1, i + 2).equals(" ")))
+							&& !isColorCode(message.substring(i - 1, i + 1), null, null)
+							&& !message.substring(i - 1, i).equals("0")
+							&& !message.substring(i - 1, i).equals("1")
+							&& !message.substring(i - 1, i).equals("2")
+							&& !message.substring(i - 1, i).equals("3")
+							&& !message.substring(i - 1, i).equals("4")
+							&& !message.substring(i - 1, i).equals("5")
+							&& !message.substring(i - 1, i).equals("6")
+							&& !message.substring(i - 1, i).equals("7")
+							&& !message.substring(i - 1, i).equals("8")
+							&& !message.substring(i - 1, i).equals("9"))
+						message = message.substring(0, i) + " " + message.substring(i);
 			message = " " + message + " ";
 			// perform corrections
+			console.sendMessage(message);
 			for (int i = 0; i < strings_to_correct.size(); i++)
 				message = replace(message, strings_to_correct.get(i), corrected_strings.get(i), unless_strings.get(i), true_means_before.get(i), true);
 			String[] words = message.split(" ");
 			// change all capital words to italics
 			if (change_all_caps_to_italics) {
 				for (int i = 0; i < words.length; i++) {
+					// temporarily eliminate color codes
 					String temp = words[i];
 					if (temp.contains("&") || temp.contains("%"))
 						for (int j = 0; j < temp.length() - 1; j++)
@@ -469,9 +2689,24 @@ public class myScribe extends JavaPlugin implements Listener {
 								else
 									break;
 							}
-					if ((temp.length() > 1 || (i > 0 && words[i - 1].contains("&o")) || (i < words.length - 1 && words[i + 1].contains("&o")))
-							&& !temp.contains(":") && !temp.contains("=") && !temp.contains("\\") && temp.equals(temp.toUpperCase())
-							&& !temp.toLowerCase().equals(temp) && !replace(temp, " ", "", null, true, true).equalsIgnoreCase("XD")) {
+					// make the changes if, respectively, the word is longer
+					// than one letter (or the word before or after it is
+					// italicized); there are no underscores (found in usernames
+					// or emoticons); it doesn't have a length of two and start
+					// with or and with an X, a colon, a semicolon, or an equals
+					// sign (emoticons); the words is all caps (of course); and
+					// the
+					// word is not in an abbreviation
+					if ((temp.length() > 1 || (i > 0 && words[i - 1].toLowerCase().contains("&o")) || (i < words.length - 1 && words[i + 1].toLowerCase()
+							.contains("&o")))
+							&& !temp.contains("_")
+							&& !temp.contains("\\")
+							&& temp.equals(temp.toUpperCase())
+							&& !temp.toLowerCase().equals(temp)
+							&& (temp.length() != 2 || !(temp.startsWith("X") || temp.endsWith("X") || temp.startsWith(":") || temp.endsWith(":")
+									|| temp.startsWith(";") || temp.endsWith(";") || temp.startsWith("=") || temp.endsWith("=")))
+							&& (temp.length() != 3 || !(temp.startsWith(">X") || temp.startsWith(">:") || temp.startsWith(">;") || temp.startsWith(">=")))
+							&& (words[i].length() > 1 || i == 0 || i == words.length || !(words[i - 1].endsWith(".") && words[i + 1].startsWith(".")))) {
 						if (i == words.length - 1 && !temp.endsWith(".") && !temp.endsWith("!") && !temp.endsWith("?") && !temp.endsWith(".\"")
 								&& !temp.endsWith("!\"") && !temp.endsWith("?\""))
 							if (words[i].endsWith("\""))
@@ -479,6 +2714,12 @@ public class myScribe extends JavaPlugin implements Listener {
 							else
 								words[i] = words[i] + "!";
 						words[i] = "&o" + words[i].toLowerCase() + "%o";
+						if (i > 0 && words[i - 1].length() == 1 && words[i - 1].toUpperCase().equals(words[i - 1])
+								&& !words[i - 1].toLowerCase().equals(words[i - 1])) {
+							words[i - 1] = "&o" + words[i - 1].toLowerCase() + "%o";
+							if (words[i - 1].equals("&oi%o"))
+								words[i - 1] = "&oI%o";
+						}
 					}
 				}
 			}
@@ -502,8 +2743,8 @@ public class myScribe extends JavaPlugin implements Listener {
 						break;
 					if (message.substring(i, i + 2).equals("./")) {
 						int end_index = i + 2;
-						while (end_index < message.length()) {
-							if (!message.substring(end_index, end_index + 1).toLowerCase().equals(message.substring(end_index, end_index + 1).toUpperCase()))
+						while (end_index < message.length())
+							if (message.substring(end_index, end_index + 1).toLowerCase().equals(message.substring(end_index, end_index + 1).toUpperCase()))
 								end_index++;
 							else
 								try {
@@ -512,7 +2753,6 @@ public class myScribe extends JavaPlugin implements Listener {
 								} catch (NumberFormatException exception) {
 									break;
 								}
-						}
 						PluginCommand command = server.getPluginCommand(message.substring(i + 2, end_index));
 						if (command != null) {
 							String color_code = "f";
@@ -544,20 +2784,45 @@ public class myScribe extends JavaPlugin implements Listener {
 				}
 			// capitalize the first letter of every sentence if it is not a
 			// correction
-			if (capitalize_first_letter)
-				for (int i = 0; i < words.length; i++)
-					if (message.length() > 0 && !message.startsWith("*") && !message.endsWith("*")
-							&& (i == 0 || (words[i - 1].endsWith(".") || words[i - 1].endsWith("!") || words[i - 1].endsWith("?")))) {
-						int first_letter_index = 0;
-						while (first_letter_index + 1 <= message.length() && message.substring(first_letter_index, +1).equals(" "))
-							first_letter_index++;
-						while (first_letter_index + 2 <= message.length()
-								&& isColorCode(message.substring(first_letter_index, first_letter_index + 2), null, null))
-							first_letter_index = first_letter_index + 2;
-						message = message.substring(0, first_letter_index) + message.substring(first_letter_index, first_letter_index + 1).toUpperCase()
-								+ message.substring(first_letter_index + 1);
+			if (capitalize_first_letter && !message.startsWith("*") && !message.endsWith("*")) {
+				message = "." + message;
+				for (int i = 0; i < message.length(); i++) {
+					String check_message = message.substring(i);
+					while (check_message.startsWith(" "))
+						check_message = check_message.substring(1);
+					// locate terminal punctuation and make sure that the thing
+					// after them
+					// isn't an emoticon
+					if ((message.substring(i, i + 1).equals(".") || message.substring(i, i + 1).equals("!") || message.substring(i, i + 1).equals("?"))
+							&& !check_message.startsWith(":")
+							&& !check_message.startsWith(";")
+							&& !check_message.startsWith("=")
+							&& !(check_message.length() >= 3 && check_message.substring(0, 1).equalsIgnoreCase(check_message.substring(2, 3)) && check_message
+									.substring(0, 1).equalsIgnoreCase("o"))) {
+						for (i = i; i < message.length() - 1; i++)
+							if ((message.substring(i, i + 1).toUpperCase().equals(message.substring(i, i + 1).toLowerCase())
+									&& !message.substring(i, i + 1).equals("0") && !message.substring(i, i + 1).equals("1")
+									&& !message.substring(i, i + 1).equals("2") && !message.substring(i, i + 1).equals("3")
+									&& !message.substring(i, i + 1).equals("4") && !message.substring(i, i + 1).equals("5")
+									&& !message.substring(i, i + 1).equals("6") && !message.substring(i, i + 1).equals("7")
+									&& !message.substring(i, i + 1).equals("8") && !message.substring(i, i + 1).equals("9"))
+									|| (i < message.length() - 2 && isColorCode(message.substring(i, i + 2), null, null))) {
+								if (i < message.length() - 2 && isColorCode(message.substring(i, i + 2), null, null))
+									i++;
+							} else
+								break;
+						// don't capitalize after an ellipsis
+						if (i < 4 || !message.substring(i - 4, i).equals("... "))
+							if (i + 1 == message.length())
+								message = message.substring(0, i) + message.substring(i, i + 1).toUpperCase();
+							else
+								message = message.substring(0, i) + message.substring(i, i + 1).toUpperCase() + message.substring(i + 1);
 					}
+				}
+				message = message.substring(1);
+			}
 			// eliminate extra spaces between letters and punctuation
+			message = replace(replace(message, "... ", "...", null, true, true), "/ ", "/", null, true, true);
 			int quote_counter = 0;
 			for (int i = 1; i < message.length(); i++) {
 				if (message.substring(i, i + 1).toLowerCase().equals(message.substring(i, i + 1).toUpperCase())
@@ -568,32 +2833,54 @@ public class myScribe extends JavaPlugin implements Listener {
 						if (message.substring(i, i + 1).equals("\""))
 							quote_counter++;
 						if (!message.substring(i, i + 1).equals("(") && !message.substring(i, i + 1).equals("[") && !message.substring(i, i + 1).equals("{")
-								&& !(message.substring(i, i + 1).equals("\"") && quote_counter % 2 == 1))
+								&& !message.substring(i, i + 1).equals("\\") && !message.substring(i, i + 1).equals("+")
+								&& !message.substring(i, i + 1).equals("/") && !(message.substring(i, i + 1).equals("\"") && quote_counter % 2 == 1))
 							while (i > 0 && message.substring(i - 1, i).equals(" "))
 								message = message.substring(0, i - 1) + message.substring(i);
+						else if (message.substring(i, i + 1).equals("/")) {
+							int end_index = i + 1;
+							while (end_index < message.length()
+									&& (!message.substring(end_index, end_index + 1).toUpperCase().equals(
+											message.substring(end_index, end_index + 1).toLowerCase())
+											|| message.substring(end_index, end_index + 1).equals("0")
+											|| message.substring(end_index, end_index + 1).equals("1")
+											|| message.substring(end_index, end_index + 1).equals("2")
+											|| message.substring(end_index, end_index + 1).equals("3")
+											|| message.substring(end_index, end_index + 1).equals("4")
+											|| message.substring(end_index, end_index + 1).equals("5")
+											|| message.substring(end_index, end_index + 1).equals("6")
+											|| message.substring(end_index, end_index + 1).equals("7")
+											|| message.substring(end_index, end_index + 1).equals("8") || message.substring(end_index, end_index + 1).equals(
+											"9")))
+								end_index++;
+							if (server.getPluginCommand(message.substring(i + 1, end_index)) == null)
+								while (i > 0 && message.substring(i - 1, i).equals(" "))
+									message = message.substring(0, i - 1) + message.substring(i);
+						} else if (message.substring(i, i + 1).equals("\"") || message.substring(i, i + 1).equals("(")
+								|| message.substring(i, i + 1).equals("[") || message.substring(i, i + 1).equals("{"))
+							while (i < message.length() && message.substring(i, i + 1).equals(" "))
+								if (i == message.length() - 1)
+									message = message.substring(0, i);
+								else
+									message = message.substring(0, i) + message.substring(i + 1);
 					}
 				}
 			}
 			message = replace(message, "  ", " ", null, true, true);
+			message = replace(replace(replace(message, "%o.", ".%o", null, true, true), "%o!", "!%o", null, true, true), "%o?", "?%o", null, true, true);
 			while (message.length() >= 2 && isColorCode(message.substring(message.length() - 2), null, null))
 				message = message.substring(0, message.length() - 2);
 			// end lines with a period if no terminal punctuation exists and the
 			// message doesn't start with or end with a * (correction) and the
 			// message's last or second to last characters are not colons
 			// (emoticons)
-			if (message.endsWith("%o"))
-				message = message.substring(0, message.length() - 2);
-			else if (message.endsWith("%o."))
-				message = message.substring(0, message.length() - 3) + ".";
-			else if (message.endsWith("%o!"))
-				message = message.substring(0, message.length() - 3) + "!";
-			else if (message.endsWith("%o?"))
-				message = message.substring(0, message.length() - 3) + "?";
-			if (message.endsWith(".") || message.endsWith("!") || message.endsWith("?"))
-				message = message.substring(0, message.length() - 1) + "%k" + message.substring(message.length() - 1);
-			else if (message.endsWith(".\"") || message.endsWith("!\"") || message.endsWith("?\""))
-				message = message.substring(0, message.length() - 2) + "%k" + message.substring(message.length() - 2);
-			else if (end_with_period
+			if (end_with_period
+					&& !message.endsWith(".")
+					&& !message.endsWith("!")
+					&& !message.endsWith("?")
+					&& !message.endsWith(".\"")
+					&& !message.endsWith("!\"")
+					&& !message.endsWith("?\"")
 					&& message.length() > 0
 					&& !(message.startsWith("*")
 							|| message.endsWith("*")
@@ -604,11 +2891,26 @@ public class myScribe extends JavaPlugin implements Listener {
 									|| message.substring(message.length() - 2, message.length() - 1).equals("=") || message.substring(message.length() - 2,
 									message.length() - 1).equals(";"))) || message.toUpperCase().endsWith("XD") || message.endsWith("<3") || (message.length() >= 3
 							&& message.substring(message.length() - 1).equalsIgnoreCase(message.substring(message.length() - 3, message.length() - 2)) && (message
-							.toLowerCase().endsWith("o") || message.toLowerCase().endsWith("t") || message.endsWith("-")))) && !message.endsWith("\\"))
+							.toLowerCase().endsWith("o")
+							|| message.toLowerCase().endsWith("t") || message.endsWith("-")))) && !message.endsWith("\\"))
 				if (!message.endsWith("\""))
 					message = message + "%k.";
 				else
 					message = message.substring(0, message.length() - 1) + "%k.\"";
+		}
+		// get rid of all color codes immediately followed by an anti color code
+		// of the same kind
+		for (String color_code_char : color_color_code_chars) {
+			message = replace(message, "%" + color_code_char + "&" + color_code_char, "", null, true, true);
+			message = replace(message, "&" + color_code_char + "%" + color_code_char, "", null, true, true);
+			message = replace(message, "%" + color_code_char + " &" + color_code_char, " ", null, true, true);
+			message = replace(message, "&" + color_code_char + " %" + color_code_char, " ", null, true, true);
+		}
+		for (String color_code_char : formatting_color_code_chars) {
+			message = replace(message, "%" + color_code_char + "&" + color_code_char, "", null, true, true);
+			message = replace(message, "&" + color_code_char + "%" + color_code_char, "", null, true, true);
+			message = replace(message, "%" + color_code_char + " &" + color_code_char, " ", null, true, true);
+			message = replace(message, "&" + color_code_char + " %" + color_code_char, " ", null, true, true);
 		}
 		return replace(message, "\\", "", "\\", false, true);
 	}
@@ -619,19 +2921,18 @@ public class myScribe extends JavaPlugin implements Listener {
 		for (int i = 0; i < text.length() - 3; i++)
 			if (isColorCode(text.substring(i, i + 2), false, true) && isColorCode(text.substring(i + 2, i + 4), true, true))
 				text = text.substring(0, i) + text.substring(i + 2, i + 4) + text.substring(i, i + 2) + text.substring(i + 4);
+		// replace all anti color codes with non antis
 		String current_color_code = "";
-		boolean anti_codes_found = false;
 		for (int i = 0; i < text.length() - 1; i++) {
 			if (isColorCode(text.substring(i, i + 2), null, true))
 				current_color_code = current_color_code + text.substring(i, i + 2);
-			else
-				while (text.length() >= i + 2 && isColorCode(text.substring(i, i + 2), null, false)) {
+			else if (isColorCode(text.substring(i, i + 2), null, false)) {
+				while (text.length() > i + 2 && isColorCode(text.substring(i, i + 2), null, false)) {
 					current_color_code = replace(current_color_code, "&" + text.substring(i + 1, i + 2), "", null, true, true);
-					anti_codes_found = true;
+					if (current_color_code.equals(""))
+						current_color_code = "&f";
 					text = text.substring(0, i) + text.substring(i + 2);
 				}
-			if (anti_codes_found) {
-				anti_codes_found = false;
 				text = text.substring(0, i) + current_color_code + text.substring(i);
 			}
 		}
@@ -640,18 +2941,21 @@ public class myScribe extends JavaPlugin implements Listener {
 	}
 
 	private static Boolean isColorCode(String text, Boolean true_non_formatting_null_either, Boolean true_non_anti_null_either) {
-		if (((true_non_anti_null_either == null || true_non_anti_null_either) && text.substring(0, 1).equals("&"))
-				|| ((true_non_anti_null_either == null || !true_non_anti_null_either) && text.substring(0, 1).equals("%")))
-			if (((true_non_formatting_null_either == null || true_non_formatting_null_either) && (text.substring(1, 2).equalsIgnoreCase("0")
-					|| text.substring(1, 2).equalsIgnoreCase("1") || text.substring(1, 2).equalsIgnoreCase("2") || text.substring(1, 2).equalsIgnoreCase("3")
-					|| text.substring(1, 2).equalsIgnoreCase("4") || text.substring(1, 2).equalsIgnoreCase("5") || text.substring(1, 2).equalsIgnoreCase("6")
-					|| text.substring(1, 2).equalsIgnoreCase("7") || text.substring(1, 2).equalsIgnoreCase("8") || text.substring(1, 2).equalsIgnoreCase("9")
-					|| text.substring(1, 2).equalsIgnoreCase("a") || text.substring(1, 2).equalsIgnoreCase("b") || text.substring(1, 2).equalsIgnoreCase("c")
-					|| text.substring(1, 2).equalsIgnoreCase("d") || text.substring(1, 2).equalsIgnoreCase("e") || text.substring(1, 2).equalsIgnoreCase("f")))
-					|| ((true_non_formatting_null_either == null || !true_non_formatting_null_either) && (text.substring(1, 2).equalsIgnoreCase("k")
-							|| text.substring(1, 2).equalsIgnoreCase("l") || text.substring(1, 2).equalsIgnoreCase("m")
-							|| text.substring(1, 2).equalsIgnoreCase("n") || text.substring(1, 2).equalsIgnoreCase("o"))))
-				return true;
+		if (!text.startsWith("&") && !text.startsWith("%"))
+			return false;
+		if (true_non_anti_null_either != null)
+			if (true_non_anti_null_either && text.startsWith("%"))
+				return false;
+			else if (!true_non_anti_null_either && text.startsWith("&"))
+				return false;
+		if (true_non_formatting_null_either == null || true_non_formatting_null_either)
+			for (String color_color_code_char : color_color_code_chars)
+				if (text.substring(1, 2).equalsIgnoreCase(color_color_code_char))
+					return true;
+		if (true_non_formatting_null_either == null || !true_non_formatting_null_either)
+			for (String formatting_color_code_char : formatting_color_code_chars)
+				if (text.substring(1, 2).equalsIgnoreCase(formatting_color_code_char))
+					return true;
 		return false;
 	}
 
@@ -721,7 +3025,7 @@ public class myScribe extends JavaPlugin implements Listener {
 			event.setCancelled(true);
 		// if the player hasn't accepted the rules, cancel the event
 		if (!players_who_have_accepted_the_rules.contains(event.getPlayer().getName()) && !event.getPlayer().isOp()) {
-			if (event.getMessage().toLowerCase().contains("shut up"))
+			if (event.getMessage().toLowerCase().contains("shut up") || event.getMessage().toLowerCase().contains("stfu"))
 				event.getPlayer().sendMessage(colorCode("&4&oNo, &lyou %lshut up, b&kitch%k!"));
 			else
 				event.getPlayer().sendMessage(ChatColor.RED + "Read and accept the rules first.");
@@ -735,9 +3039,10 @@ public class myScribe extends JavaPlugin implements Listener {
 				command_beginning = command_beginnings.get(event.getPlayer());
 				command_beginnings.remove(event.getPlayer());
 			}
-			if (event.getMessage().endsWith("[...]"))
+			if (event.getMessage().endsWith("[...]")) {
 				command_beginnings.put(event.getPlayer(), command_beginning + event.getMessage().substring(0, event.getMessage().length() - 5));
-			else
+				event.getPlayer().sendMessage(ChatColor.BLUE + "You may continue typing.");
+			} else
 				event.getPlayer().performCommand(command_beginning + event.getMessage());
 		}
 		// if it is a chat
@@ -749,15 +3054,13 @@ public class myScribe extends JavaPlugin implements Listener {
 				if (epithet == null)
 					epithet = replace(default_epithet, "[player]", event.getPlayer().getName(), null, true, true);
 				// fit the epithet and message into the message format
-				String formatted_message = default_message_format;
 				String full_chat_message = event.getMessage();
 				if (message_beginnings.get(event.getPlayer()) != null) {
 					full_chat_message = message_beginnings.get(event.getPlayer()) + event.getMessage();
 					message_beginnings.remove(event.getPlayer());
 				}
-				formatted_message = replace(replace(formatted_message, "[epithet]", epithet, null, true, false), "[message]", AutoCorrect(full_chat_message),
-						null, true, false);
-				server.broadcastMessage(colorCode(formatted_message));
+				server.broadcastMessage(colorCode(replace(replace(replace(default_message_format, "[player]", event.getPlayer().getName(), null, true, true),
+						"[epithet]", epithet, null, true, false), "[message]", AutoCorrect(full_chat_message), null, true, false)));
 			} else {
 				String message_beginning = message_beginnings.get(event.getPlayer());
 				if (message_beginning == null)
@@ -771,7 +3074,7 @@ public class myScribe extends JavaPlugin implements Listener {
 	@EventHandler
 	public void commandProcessing(PlayerCommandPreprocessEvent event) {
 		if (!players_who_have_accepted_the_rules.contains(event.getPlayer().getName()) && !event.getPlayer().isOp()
-				&& !event.getMessage().toLowerCase().startsWith("rules") && !event.getMessage().toLowerCase().startsWith("accept")) {
+				&& !event.getMessage().toLowerCase().startsWith("/rules") && !event.getMessage().toLowerCase().startsWith("/accept")) {
 			event.getPlayer().sendMessage(ChatColor.RED + "You have to read and accept the rules first.");
 			event.setCancelled(true);
 		} else if (event.getMessage().endsWith("[...]")) {
@@ -943,6 +3246,14 @@ public class myScribe extends JavaPlugin implements Listener {
 			command_beginnings.remove(event.getPlayer().getName());
 	}
 
+	// TEMPORARY
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void cancelFire(BlockIgniteEvent event) {
+		event.setCancelled(true);
+	}
+
+	// END TEMPORARY
+
 	// loading
 	private void loadTheAutoCorrections(CommandSender sender) {
 		boolean failed = false;
@@ -957,6 +3268,15 @@ public class myScribe extends JavaPlugin implements Listener {
 			try {
 				sender.sendMessage(ChatColor.YELLOW + "I couldn't find an AutoCorrections.txt file. I'll make a new one.");
 				corrections_file.createNewFile();
+				for (int i = 0; i < default_corrections.length; i++) {
+					strings_to_correct.add((String) default_corrections[i][0]);
+					corrected_strings.add((String) default_corrections[i][1]);
+					unless_strings.add((String) default_corrections[i][2]);
+					if ((Boolean) default_corrections[i][3])
+						true_means_before.add(true);
+					else
+						true_means_before.add(false);
+				}
 			} catch (IOException exception) {
 				sender.sendMessage(ChatColor.DARK_RED + "I couldn't create an AutoCorrections.txt file! Oh nos!");
 				exception.printStackTrace();
@@ -974,54 +3294,53 @@ public class myScribe extends JavaPlugin implements Listener {
 				if (save_line.startsWith("Would you like to use AutoCorrections in your server's chat?"))
 					AutoCorrect_on = getResponse(sender, save_line.substring(60), in.readLine(), "Right now, AutoCorrections are enabled.");
 				else if (save_line.startsWith("Would you like me to capitalize the first letter of every sentence?"))
-					capitalize_first_letter = getResponse(sender, save_line.substring(67), in.readLine(),
-							"   Right now, first letter capitalization is enabled.");
+					capitalize_first_letter = getResponse(sender, save_line.substring(67), in.readLine(), "Right now, first letter capitalization is enabled.");
 				else if (save_line.equals("Would you like me to put periods at the end of any sentences that have no terminal punctuation?"))
 					end_with_period = getResponse(sender, save_line.substring(95), in.readLine(), "Right now, period addition is enabled.");
 				else if (save_line.equals("Would you like me to change any all-caps words or sentences to lowercase italics?"))
-					change_all_caps_to_italics = getResponse(sender, save_line.substring(81), in.readLine(),
-							"Right now, caps to italics conversion is enabled.");
+					change_all_caps_to_italics =
+							getResponse(sender, save_line.substring(81), in.readLine(), "Right now, caps to italics conversion is enabled.");
 				else if (save_line.equals("Would you like me to cover up profanities using magic (meaning the &k color code, not fairy dust)?"))
 					cover_up_profanities = getResponse(sender, save_line.substring(98), in.readLine(), "Right now, profanity coverup is enabled.");
 				else if (save_line.equals("Would you like me to replace all in-text commands with their usages when they start with a \"./\"?"))
 					insert_command_usages = getResponse(sender, save_line.substring(96), in.readLine(), "Right now, command usage insertion is enabled.");
-				else {
-					if (save_line.length() > 8 && save_line.substring(0, 8).equalsIgnoreCase("change: ")) {
-						String string_to_correct = save_line.substring(8);
-						if (string_to_correct.startsWith("\"") && string_to_correct.endsWith("\""))
-							string_to_correct = string_to_correct.substring(1, string_to_correct.length() - 1);
+				else if (save_line.length() > 8 && save_line.substring(0, 8).equalsIgnoreCase("change: ")) {
+					String string_to_correct = save_line.substring(8);
+					if (string_to_correct.startsWith("\"") && string_to_correct.endsWith("\"") && string_to_correct.length() > 1)
+						string_to_correct = string_to_correct.substring(1, string_to_correct.length() - 1);
+					save_line = in.readLine();
+					already_progressed = true;
+					if (save_line != null && save_line.length() >= 4 && save_line.substring(0, 4).equals("to: ")) {
 						strings_to_correct.add(string_to_correct);
+						if (save_line.length() > 4) {
+							String corrected_string = save_line.substring(4);
+							if (corrected_string.startsWith("\"") && corrected_string.endsWith("\""))
+								corrected_string = corrected_string.substring(1, corrected_string.length() - 1);
+							corrected_strings.add(corrected_string);
+						} else
+							corrected_strings.add("");
 						save_line = in.readLine();
-						already_progressed = true;
-						if (save_line != null && save_line.length() >= 4 && save_line.substring(0, 4).equals("to: ")) {
-							if (save_line.length() > 4) {
-								String corrected_string = save_line.substring(4);
-								if (corrected_string.startsWith("\"") && corrected_string.endsWith("\""))
-									corrected_string = corrected_string.substring(1, corrected_string.length() - 1);
-								corrected_strings.add(corrected_string);
-							} else
-								corrected_strings.add("");
+						if (save_line != null && save_line.length() > 8 && save_line.substring(0, 8).equalsIgnoreCase("unless: ")) {
+							String unless_string = save_line.substring(8);
+							if (unless_string.startsWith("\"") && unless_string.endsWith("\""))
+								unless_string = unless_string.substring(1, unless_string.length() - 1);
 							save_line = in.readLine();
-							if (save_line != null && save_line.length() > 8 && save_line.substring(0, 8).equalsIgnoreCase("unless: ")) {
-								String unless_string = save_line.substring(8);
-								if (unless_string.startsWith("\"") && unless_string.endsWith("\""))
-									unless_string = unless_string.substring(1, unless_string.length() - 1);
+							if (save_line != null && save_line.length() >= 12 && save_line.substring(0, 12).equalsIgnoreCase("comes before")) {
 								unless_strings.add(unless_string);
+								true_means_before.add(true);
 								save_line = in.readLine();
-								if (save_line != null && save_line.length() >= 13 && save_line.substring(0, 13).equalsIgnoreCase("comes: before")) {
-									true_means_before.add(true);
-									save_line = in.readLine();
-								} else if (save_line != null && save_line.length() >= 12 && save_line.substring(0, 12).equalsIgnoreCase("comes: after")) {
-									true_means_before.add(false);
-									save_line = in.readLine();
-								} else
-									unless_strings.set(unless_strings.size() - 1, null);
+							} else if (save_line != null && save_line.length() >= 11 && save_line.substring(0, 11).equalsIgnoreCase("comes after")) {
+								unless_strings.add(unless_string);
+								true_means_before.add(false);
+								save_line = in.readLine();
 							} else {
 								unless_strings.add(null);
 								true_means_before.add(true);
 							}
-						} else
-							strings_to_correct.set(strings_to_correct.size() - 1, null);
+						} else {
+							unless_strings.add(null);
+							true_means_before.add(true);
+						}
 					}
 				}
 				if (!already_progressed)
@@ -1037,6 +3356,17 @@ public class myScribe extends JavaPlugin implements Listener {
 			failed = true;
 		}
 		if (!failed) {
+			if (strings_to_correct.size() == 0) {
+				for (int i = 0; i < default_corrections.length; i++) {
+					strings_to_correct.add((String) default_corrections[i][0]);
+					corrected_strings.add((String) default_corrections[i][1]);
+					unless_strings.add((String) default_corrections[i][2]);
+					if ((Boolean) default_corrections[i][3])
+						true_means_before.add(true);
+					else
+						true_means_before.add(false);
+				}
+			}
 			saveTheAutoCorrectSettings(sender, false);
 			if (strings_to_correct.size() == 0)
 				sender.sendMessage(ChatColor.BLUE + "Your AutoCorrect settings have been loaded.");
@@ -1066,6 +3396,7 @@ public class myScribe extends JavaPlugin implements Listener {
 			try {
 				sender.sendMessage(ChatColor.YELLOW + "I couldn't find an death messages.txt file. I'll make a new one.");
 				death_messages_file.createNewFile();
+				death_messages_by_cause = default_death_messages;
 			} catch (IOException exception) {
 				sender.sendMessage(ChatColor.DARK_RED + "I couldn't create an death messages.txt file! Oh nos!");
 				exception.printStackTrace();
@@ -1080,8 +3411,8 @@ public class myScribe extends JavaPlugin implements Listener {
 				while (save_line.startsWith(" "))
 					save_line = save_line.substring(1);
 				if (save_line.startsWith("Do you want hilarious death messages to appear when people die?"))
-					display_death_messages = getResponse(sender, save_line.substring(63), in.readLine(),
-							"Right now, hilarious death messages will appear when someone dies.");
+					display_death_messages =
+							getResponse(sender, save_line.substring(63), in.readLine(), "Right now, hilarious death messages will appear when someone dies.");
 				save_line = in.readLine();
 			}
 			in.close();
@@ -1233,8 +3564,8 @@ public class myScribe extends JavaPlugin implements Listener {
 						String[] players_listed = save_line.split(", ");
 						// elimiate the "and" and sentence ending around the
 						// last username
-						players_listed[players_listed.length - 1] = players_listed[players_listed.length - 1].substring(4,
-								players_listed[players_listed.length - 1].length() - 29);
+						players_listed[players_listed.length - 1] =
+								players_listed[players_listed.length - 1].substring(4, players_listed[players_listed.length - 1].length() - 29);
 						// convert the array to an ArrayList
 						for (String listed_player : players_listed)
 							players_who_have_accepted_the_rules.add(listed_player);
@@ -1280,6 +3611,15 @@ public class myScribe extends JavaPlugin implements Listener {
 			this.getDataFolder().mkdir();
 			try {
 				corrections_file.createNewFile();
+				for (int i = 0; i < default_corrections.length; i++) {
+					strings_to_correct.add((String) default_corrections[i][0]);
+					corrected_strings.add((String) default_corrections[i][1]);
+					unless_strings.add((String) default_corrections[i][2]);
+					if ((Boolean) default_corrections[i][3])
+						true_means_before.add(true);
+					else
+						true_means_before.add(false);
+				}
 			} catch (IOException exception) {
 				sender.sendMessage(ChatColor.DARK_RED + "I couldn't create an AutoCorrections.txt file! Oh nos!");
 				exception.printStackTrace();
@@ -1419,12 +3759,12 @@ public class myScribe extends JavaPlugin implements Listener {
 			failed = true;
 		}
 		if (!failed && display_message)
-			if (strings_to_correct.size() == 0)
+			if (death_messages_by_cause.size() == 0)
 				sender.sendMessage(ChatColor.BLUE + "You don't actually have any death messages to save.");
-			else if (strings_to_correct.size() == 1)
+			else if (death_messages_by_cause.size() == 1)
 				sender.sendMessage(ChatColor.BLUE + "Your server's only death message has been saved.");
 			else
-				sender.sendMessage(ChatColor.BLUE + "Your server's " + strings_to_correct.size() + " death messages have been saved.");
+				sender.sendMessage(ChatColor.BLUE + "Your server's " + death_messages_by_cause.size() + " death messages have been saved.");
 	}
 
 	private void saveTheEpithets(CommandSender sender, boolean display_message) {
@@ -1609,11 +3949,11 @@ public class myScribe extends JavaPlugin implements Listener {
 			while (epithet.startsWith(" "))
 				epithet = epithet.substring(1);
 			boolean epithet_is_acceptable = epithet.length() > 0;
-			if (true_username_required && player != null && !player.hasPermission("mychat.admin")) {
-				epithet_is_acceptable = epithet.length() > 0 && !epithet.contains("&k")
-						&& epithet.replaceAll("(&+([a-fA-Fk-oK-OrR0-9]))", "").contains(player.getName());
+			if (true_username_required && player != null && !player.hasPermission("myscribe.admin")) {
+				epithet_is_acceptable =
+						epithet.length() > 0 && !epithet.contains("&k") && epithet.replaceAll("(&+([a-fA-Fk-oK-OrR0-9]))", "").contains(player.getName());
 			}
-			if ((epithet_is_acceptable && player.getName().equals(owner)) || player.hasPermission("mychat.admin")) {
+			if ((epithet_is_acceptable && player.getName().equals(owner)) || player.hasPermission("myscribe.admin")) {
 				epithets_by_user.put(owner, epithet);
 				if (player != null && player.getName().equalsIgnoreCase(owner))
 					player.sendMessage(ChatColor.BLUE + "Henceforth, you shall be known as \"" + colorCode(epithet) + ChatColor.BLUE + ".\"");
@@ -1626,219 +3966,6 @@ public class myScribe extends JavaPlugin implements Listener {
 			sender.sendMessage(ChatColor.BLUE + "You set the \"/say\" epithet to \"" + colorCode(epithet) + ChatColor.BLUE + ".\"");
 		} else if (epithet.equals(""))
 			sender.sendMessage(ChatColor.RED + "You forgot to tell me the epithet you want!");
-	}
-
-	private void enchantItem(CommandSender sender) {
-		Player player = (Player) sender;
-		// check to make sure the item is enchantable at all and get the item
-		// name
-		String item_name = null;
-		int id = player.getItemInHand().getTypeId();
-		if (id == 302)
-			item_name = "chainmail helmet";
-		else if (id == 303)
-			item_name = "chainmail chestplate";
-		else if (id == 304)
-			item_name = "chainmail leggings";
-		else if (id == 305)
-			item_name = "chainmail boots";
-		else if (id == 306)
-			item_name = "iron helmet";
-		else if (id == 307)
-			item_name = "iron chestplate";
-		else if (id == 308)
-			item_name = "iron leggings";
-		else if (id == 309)
-			item_name = "iron boots";
-		else if (id == 310)
-			item_name = "diamond helmet";
-		else if (id == 311)
-			item_name = "diamond chestplate";
-		else if (id == 312)
-			item_name = "diamond leggings";
-		else if (id == 313)
-			item_name = "diamond boots";
-		else if (id == 314)
-			item_name = "gold helmet";
-		else if (id == 315)
-			item_name = "gold chestplate";
-		else if (id == 316)
-			item_name = "gold leggings";
-		else if (id == 317)
-			item_name = "gold boots";
-		else if (id == 267)
-			item_name = "iron sword";
-		else if (id == 268)
-			item_name = "wooden sword";
-		else if (id == 272)
-			item_name = "stone sword";
-		else if (id == 276)
-			item_name = "diamond sword";
-		else if (id == 283)
-			item_name = "golden sword";
-		else if (id == 257)
-			item_name = "iron pickaxe";
-		else if (id == 270)
-			item_name = "wooden pickaxe";
-		else if (id == 274)
-			item_name = "stone pickaxe";
-		else if (id == 278)
-			item_name = "diamond pickaxe";
-		else if (id == 285)
-			item_name = "golden pickaxe";
-		else if (id == 256)
-			item_name = "iron shovel";
-		else if (id == 269)
-			item_name = "wooden shovel";
-		else if (id == 273)
-			item_name = "stone shovel";
-		else if (id == 277)
-			item_name = "diamond shovel";
-		else if (id == 284)
-			item_name = "golden shovel";
-		else if (id == 258)
-			item_name = "iron axe";
-		else if (id == 271)
-			item_name = "wooden axe";
-		else if (id == 275)
-			item_name = "stone axe";
-		else if (id == 279)
-			item_name = "diamond axe";
-		else if (id == 286)
-			item_name = "golden axe";
-		else if (id == 261)
-			item_name = "bow";
-		else {
-			player.sendMessage(ChatColor.RED + "Sorry, but that thing isn't even enchantable.");
-			return;
-		}
-		// read the enchantments to add
-		String temp = "";
-		for (String parameter : parameters)
-			temp = temp + parameter;
-		String[] enchantments_names = temp.split(",");
-		int[] enchantments_levels = new int[enchantments_names.length];
-		// get the level of each enchantment
-		for (int i = 0; i < enchantments_names.length; i++)
-			if (enchantments_names[i].toLowerCase().endsWith("iv")) {
-				enchantments_names[i] = enchantments_names[i].substring(0, enchantments_names[i].length() - 2);
-				enchantments_levels[i] = 4;
-			} else if (enchantments_names[i].toLowerCase().endsWith("v")) {
-				enchantments_names[i] = enchantments_names[i].substring(0, enchantments_names[i].length() - 1);
-				enchantments_levels[i] = 5;
-			} else if (enchantments_names[i].toLowerCase().endsWith("iii")) {
-				enchantments_names[i] = enchantments_names[i].substring(0, enchantments_names[i].length() - 3);
-				enchantments_levels[i] = 3;
-			} else if (enchantments_names[i].toLowerCase().endsWith("ii")) {
-				enchantments_names[i] = enchantments_names[i].substring(0, enchantments_names[i].length() - 2);
-				enchantments_levels[i] = 2;
-			} else if (enchantments_names[i].toLowerCase().endsWith("i")) {
-				enchantments_names[i] = enchantments_names[i].substring(0, enchantments_names[i].length() - 1);
-				enchantments_levels[i] = 1;
-			} else if (enchantments_names[i].toLowerCase().endsWith("5")) {
-				enchantments_names[i] = enchantments_names[i].substring(0, enchantments_names[i].length() - 1);
-				enchantments_levels[i] = 5;
-			} else if (enchantments_names[i].toLowerCase().endsWith("4")) {
-				enchantments_names[i] = enchantments_names[i].substring(0, enchantments_names[i].length() - 1);
-				enchantments_levels[i] = 4;
-			} else if (enchantments_names[i].toLowerCase().endsWith("3")) {
-				enchantments_names[i] = enchantments_names[i].substring(0, enchantments_names[i].length() - 1);
-				enchantments_levels[i] = 3;
-			} else if (enchantments_names[i].toLowerCase().endsWith("2")) {
-				enchantments_names[i] = enchantments_names[i].substring(0, enchantments_names[i].length() - 1);
-				enchantments_levels[i] = 2;
-			} else if (enchantments_names[i].toLowerCase().endsWith("1")) {
-				enchantments_names[i] = enchantments_names[i].substring(0, enchantments_names[i].length() - 1);
-				enchantments_levels[i] = 1;
-			} else
-				enchantments_levels[i] = 1;
-		// get the enchantments themselves
-		Enchantment[] enchantments = new Enchantment[enchantments_names.length];
-		for (int i = 0; i < enchantments_names.length; i++)
-			for (Object enchantment : enchantment_names.keySet().toArray())
-				if (enchantment_names.get(enchantment).toLowerCase().startsWith(enchantments_names[i].toLowerCase())
-						&& ((Enchantment) enchantment).canEnchantItem(player.getItemInHand()))
-					enchantments[i] = ((Enchantment) enchantment);
-		for (int i = 0; i < enchantments_names.length; i++)
-			if (enchantments[i] == null)
-				for (Object enchantment : enchantment_names.keySet().toArray())
-					if (enchantment_names.get(enchantment).toLowerCase().startsWith(enchantments_names[i].toLowerCase()))
-						enchantments[i] = ((Enchantment) enchantment);
-		// try to enchant the item
-		ArrayList<Enchantment> good_enchantments = new ArrayList<Enchantment>(), bad_enchantments = new ArrayList<Enchantment>();
-		ArrayList<String> absent_enchantments = new ArrayList<String>(), good_enchantments_levels = new ArrayList<String>();
-		for (int i = 0; i < enchantments.length; i++) {
-			if (enchantments[i] != null && enchantments[i].canEnchantItem(player.getItemInHand())) {
-				player.getItemInHand().addEnchantment(enchantments[i], enchantments_levels[i]);
-				good_enchantments.add(enchantments[i]);
-				if (enchantments[i].equals(Enchantment.SILK_TOUCH) || enchantments[i].equals(Enchantment.ARROW_INFINITE)
-						|| enchantments[i].equals(Enchantment.WATER_WORKER) || enchantments[i].equals(Enchantment.ARROW_FIRE))
-					good_enchantments_levels.add("");
-				else if (enchantments_levels[i] == 1)
-					good_enchantments_levels.add(" I");
-				else if (enchantments_levels[i] == 2)
-					good_enchantments_levels.add(" II");
-				else if (enchantments_levels[i] == 3)
-					good_enchantments_levels.add(" III");
-				else if (enchantments_levels[i] == 4)
-					good_enchantments_levels.add(" IV");
-				else if (enchantments_levels[i] == 5)
-					good_enchantments_levels.add(" V");
-			} else if (enchantments[i] != null)
-				bad_enchantments.add(enchantments[i]);
-			else
-				absent_enchantments.add(enchantments_names[i]);
-		}
-		// display results
-		if (good_enchantments.size() == 1)
-			player.sendMessage(ChatColor.BLUE + magic_words[(int) (Math.random() * magic_words.length)] + " Your " + item_name + " is now enchanted with "
-					+ ChatColor.GRAY + enchantment_names.get(good_enchantments.get(0)) + good_enchantments_levels.get(0) + ChatColor.BLUE + ".");
-		else if (good_enchantments.size() == 2)
-			player.sendMessage(ChatColor.BLUE + magic_words[(int) (Math.random() * magic_words.length)] + " Your " + item_name + " is now enchanted with "
-					+ ChatColor.GRAY + enchantment_names.get(good_enchantments.get(0)) + good_enchantments_levels.get(0) + ChatColor.BLUE + " and "
-					+ ChatColor.GRAY + enchantment_names.get(good_enchantments.get(1)) + good_enchantments_levels.get(1) + ChatColor.BLUE + ".");
-		else if (good_enchantments.size() > 2) {
-			String message_beginning = ChatColor.BLUE + magic_words[(int) (Math.random() * magic_words.length)] + " Your " + item_name
-					+ " is now enchanted with ";
-			for (int i = 0; i < good_enchantments.size() - 1; i++)
-				message_beginning = message_beginning + ChatColor.GRAY + enchantment_names.get(good_enchantments.get(i)) + good_enchantments_levels.get(i)
-						+ ChatColor.BLUE + ", ";
-			player.sendMessage(message_beginning + " and " + ChatColor.GRAY + enchantment_names.get(good_enchantments.get(good_enchantments.size() - 1))
-					+ good_enchantments_levels.get(good_enchantments_levels.size() - 1) + ChatColor.BLUE + ".");
-		}
-		if (bad_enchantments.size() > 0) {
-			String message_beginning = ChatColor.RED + "";
-			if (good_enchantments.size() > 0)
-				message_beginning = ChatColor.RED + "However, ";
-			if (bad_enchantments.size() == 1)
-				player.sendMessage(message_beginning + ChatColor.GRAY + enchantment_names.get(bad_enchantments.get(0)) + ChatColor.RED + " doesn't work on "
-						+ item_name + "s. Sorry.");
-			else if (bad_enchantments.size() == 2)
-				player.sendMessage(message_beginning + ChatColor.GRAY + enchantment_names.get(bad_enchantments.get(0)) + ChatColor.RED + "and" + ChatColor.GRAY
-						+ enchantment_names.get(bad_enchantments.get(1)) + ChatColor.RED + " don't work on " + item_name + "s. Sorry.");
-			else if (bad_enchantments.size() > 2) {
-				for (int i = 0; i < bad_enchantments.size() - 1; i++)
-					message_beginning = message_beginning + ChatColor.GRAY + enchantment_names.get(bad_enchantments.get(i)) + ChatColor.RED + ", ";
-				player.sendMessage(message_beginning + " and " + ChatColor.GRAY + enchantment_names.get(bad_enchantments.get(bad_enchantments.size() - 1))
-						+ ChatColor.RED + " don't work on " + item_name + "s. Sorry.");
-			}
-		}
-		if (absent_enchantments.size() > 0) {
-			String message_beginning = ChatColor.RED + "I can't find any enchantments at all that start with \"";
-			if (bad_enchantments.size() > 0)
-				message_beginning = ChatColor.RED + "Also, I can't find any enchantments at all that start with \"";
-			else if (good_enchantments.size() > 0)
-				message_beginning = ChatColor.RED + "However, I can't find any enchantments at all that start with \"";
-			if (absent_enchantments.size() == 1)
-				player.sendMessage(message_beginning + absent_enchantments.get(0) + ".\"");
-			else if (absent_enchantments.size() == 2)
-				player.sendMessage(message_beginning + absent_enchantments.get(0) + "\" or \"" + absent_enchantments.get(1) + ".\"");
-			else if (absent_enchantments.size() > 2) {
-				for (int i = 0; i < absent_enchantments.size() - 1; i++)
-					message_beginning = message_beginning + absent_enchantments.get(i) + "\", \"";
-				player.sendMessage(message_beginning + " or \"" + absent_enchantments.get(absent_enchantments.size() - 1) + ".\"");
-			}
-		}
 	}
 
 	private void getRecipe(CommandSender sender) {
@@ -1862,9 +3989,8 @@ public class myScribe extends JavaPlugin implements Listener {
 					break;
 			}
 		}
-		String recipe = item_recipes.get(id);
-		if (recipe != null)
-			sender.sendMessage(colorCode(recipe));
+		if (recipes[id] != null)
+			sender.sendMessage(colorCode(recipes[id]));
 		else if (item_IDs[id] != null)
 			sender.sendMessage(ChatColor.BLUE + "You can't craft a " + item_IDs[id][0] + "!");
 		else if (query.toLowerCase().startsWith("a") || query.toLowerCase().startsWith("e") || query.toLowerCase().startsWith("i")
@@ -1872,5 +3998,61 @@ public class myScribe extends JavaPlugin implements Listener {
 			sender.sendMessage(ChatColor.RED + "Sorry, but I don't know what an \"" + query + "\" is.");
 		else
 			sender.sendMessage(ChatColor.RED + "Sorry, but I don't know what a \"" + query + "\" is.");
+	}
+
+	private void id(CommandSender sender) {
+		if (parameters.length == 0 || parameters[0].equalsIgnoreCase("this") || parameters[0].equalsIgnoreCase("that"))
+			if (sender instanceof Player) {
+				int id = ((Player) sender).getTargetBlock(null, 1024).getTypeId();
+				if (item_IDs[id][0] != null)
+					if (item_IDs[id][0].endsWith("s") && !item_IDs[id][0].endsWith("ss"))
+						sender.sendMessage(ChatColor.BLUE + "Those " + item_IDs[id][0] + " you're pointing at have the I.D. " + id + ".");
+					else
+						sender.sendMessage(ChatColor.BLUE + "That " + item_IDs[id][0] + " you're pointing at has the I.D. " + id + ".");
+				else
+					sender.sendMessage(ChatColor.RED + "Uh...what in the world " + ChatColor.ITALIC + "is" + ChatColor.RED + " that thing you're pointing at?");
+				id = ((Player) sender).getItemInHand().getTypeId();
+				if (item_IDs[id][0] != null)
+					if (item_IDs[id][0].endsWith("s") && !item_IDs[id][0].endsWith("ss"))
+						sender.sendMessage(ChatColor.BLUE + "Those " + item_IDs[id][0] + " you're holding have the I.D. " + id + ".");
+					else
+						sender.sendMessage(ChatColor.BLUE + "That " + item_IDs[id][0] + " you're holding has the I.D. " + id + ".");
+				else
+					sender.sendMessage(ChatColor.RED + "Uh...what in the world " + ChatColor.ITALIC + "is" + ChatColor.RED + " that thing you're holding?");
+			} else
+				sender.sendMessage(ChatColor.RED + "You forgot to tell me what item or I.D. you want identified!");
+		else {
+			String query = "";
+			for (String parameter : parameters)
+				if (query.equals(""))
+					query = parameter;
+				else
+					query = query + " " + parameter;
+			try {
+				int id = Integer.parseInt(query);
+				console.sendMessage("\"" + item_IDs[id][0].substring(0, 1) + "\"");
+				if (item_IDs[id] != null)
+					if (item_IDs[id][0].endsWith("s"))
+						sender.sendMessage(ChatColor.BLUE + item_IDs[id][0].substring(0, 1).toUpperCase() + item_IDs[id][0].substring(1) + " have the I.D. "
+								+ id + ".");
+					else
+						sender.sendMessage(ChatColor.BLUE + item_IDs[id][0].substring(0, 1).toUpperCase() + item_IDs[id][0].substring(1) + " has the I.D. "
+								+ id + ".");
+				else
+					sender.sendMessage(ChatColor.RED + "No item has the I.D. " + id + ".");
+			} catch (NumberFormatException exception) {
+				for (int id = 0; id < item_IDs.length; id++)
+					for (String item_name : item_IDs[id])
+						if (item_name.toLowerCase().startsWith(query.toLowerCase())) {
+							sender.sendMessage(ChatColor.BLUE + item_name + " has the I.D. " + id + ".");
+							return;
+						}
+				if (query.toLowerCase().startsWith("a") || query.toLowerCase().startsWith("e") || query.toLowerCase().startsWith("i")
+						|| query.toLowerCase().startsWith("o") || query.toLowerCase().startsWith("u"))
+					sender.sendMessage(ChatColor.RED + "Sorry, but I don't know what an \"" + query + "\" is.");
+				else
+					sender.sendMessage(ChatColor.RED + "Sorry, but I don't know what a \"" + query + "\" is.");
+			}
+		}
 	}
 }
