@@ -11,18 +11,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
@@ -39,9 +36,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerShearEntityEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.Recipe;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class myScribe extends JavaPlugin implements Listener {
@@ -58,7 +52,8 @@ public class myScribe extends JavaPlugin implements Listener {
 					"I shall return with the gifts of proper language upon the arrival of the upcoming morn." },
 			color_color_code_chars = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f" },
 			formatting_color_code_chars = { "k", "l", "m", "n", "o", "r" },
-			profanities = { "fuck", "fck", "fuk", "Goddamn", "Goddam", "damn", "shit", "dammit", "bastard", "bitch", "btch", "damnit", "cunt", "asshole" },
+			profanities = { "fuck", "fck", "fuk", "Goddamn", "Goddam", "damn", "shit", "dammit", "bastard", "bitch", "btch", "damnit", "cunt", "asshole",
+					"bigass", "dumbass", "badass", "dick" },
 			borders = { "[]", "\\/", "\"*", "_^", "-=", ":;", "&%", "#@", ",.", "<>", "~$", ")(" },
 			yeses = { "yes", "yeah", "yep", "ja", "sure", "why not", "okay", "do it", "fine", "whatever", "very well", "accept", "tpa", "cool", "hell yeah",
 					"hells yeah", "hells yes", "come" },
@@ -76,34 +71,6 @@ public class myScribe extends JavaPlugin implements Listener {
 					"&cBricks &f(which can be made by cooking clay)\n&0---\n-&cBB\n&0-&cBB", "&esand&f, &8gunpowder\n&8G&eS&8G\n&eS&8G&eS\n&8G&eS&8G",
 					"&e&m&nwooden planks&f, &cbooks\n&e&m&nWWW\n&cBBB\n&e&m&nWWW", null, null, "&fcoal or charcoal, &e&msticks\n&0---\n-&fC&0-\n-&e&mS&0-",
 					null, null, "&5&kM &fcan be any wooden planks, cobblestone, bricks, any stone bricks, Nether brick, or sanstone\n&0--&5&kM\n&0-&5&kMM\nMMM" };
-	private Object[][] default_corrections = { { " i ", " I ", null, true }, { " ik ", " I know ", null, true }, { " ib ", " I'm back ", null, true },
-			{ " tp ", " teleport ", null, false }, { " idk ", " I don't know ", null, true }, { " ikr ", " I know, right? ", "?", false },
-			{ " ikr ", " I know, right ", null, true }, { " irl ", " in real life ", null, true }, { " wtf ", " what the fuck? ", "?", false },
-			{ " wtf ", " what the fuck ", null, true }, { " wth ", " what the hell? ", "?", false }, { " wth ", " what the hell ", null, true },
-			{ " y ", " why ", "=", false }, { " u ", " you ", null, true }, { " ur ", " your ", null, true }, { " r ", " are ", null, true },
-			{ " o . o ", " \\o.\\o\\ ", null, true }, { " o ", " oh ", null, true }, { " c ", " see ", null, true }, { " k ", " okay ", null, true },
-			{ " kk ", " okay ", null, true }, { " ic ", " I see ", null, true }, { " cya ", " see ya ", null, true }, { " sum1", " someone ", null, true },
-			{ " some1", " someone ", null, true }, { "every1", "everyone", null, true }, { "any1", "anyone", null, true },
-			{ " ttyl ", " I'll talk to you later ", null, true }, { " wb ", " welcome back ", null, true }, { " ty ", " thank you ", null, true },
-			{ " yw ", " you're welcome ", null, true }, { " gb ", " goodbye ", null, true }, { " hb ", " happy birthday ", null, true },
-			{ " gl ", " good luck ", null, true }, { " jk ", " just kidding ", null, true }, { " jkjk ", " just kidding ", null, true },
-			{ " np ", " no problem ", null, true }, { " afk ", " \\a.\\f.\\k. ", "/", true }, { " \\a.\\f.\\k. .", " \\a.\\f.\\k.", null, true },
-			{ " omg ", " oh my God ", null, true }, { " omfg ", " oh my fucking God ", null, true }, { " stfu ", " shut the fuck up ", null, true },
-			{ " btw ", " by the way ", null, true }, { " i gtg ", " I have to go ", null, true }, { " i g2g ", " I have to go ", null, true },
-			{ " igtg ", " I have to go ", null, true }, { " ig2g ", " I have to go ", null, true }, { " gtg ", " I have to go ", null, true },
-			{ " g2g ", " I have to go ", null, true }, { " 2nite ", " tonight ", null, true }, { " l8", "late", null, true }, { " w8", " wait ", null, true },
-			{ " i brb ", " I'll be right back ", null, true }, { " ibrb ", " I'll be right back ", null, true },
-			{ " brb ", " I'll be right back ", null, true }, { " nvm ", " never mind ", null, true }, { " nm ", " never mind ", null, true },
-			{ " tp ", " teleport ", null, true }, { " tpa ", " teleport ", null, true }, { " cuz ", " because ", null, true },
-			{ " becuz ", " because ", null, true }, { " sry ", " sorry ", null, true }, { " im ", " I'm ", null, true }, { " wont ", " won't ", null, true },
-			{ " dont ", " don't ", null, true }, { " cant ", " can't ", null, true }, { " wouldnt ", " wouldn't ", null, true },
-			{ " shouldnt ", " shouldn't ", null, true }, { " couldnt ", " couldn't ", null, true }, { " isnt ", " isn't ", null, true },
-			{ " aint ", " ain't ", null, true }, { " doesnt ", " doesn't ", null, true }, { " youre ", " you're ", null, true },
-			{ " hes ", " he's ", null, true }, { " shes ", " she's ", null, true }, { " could of ", " could have ", null, true },
-			{ " should of ", "should have ", null, true }, { " would of ", " would have ", null, true }, { " itz ", " it's ", null, true },
-			{ "wierd", "weird", null, true }, { "recieve", "receive", null, true }, { " blowed up ", " blew up ", null, true },
-			{ " blowed it up ", " blew it up ", null, true }, { " RAM ", " \\RAM ", null, true }, { " NASA ", " \\NASA ", null, true },
-			{ " Xbox LIVE ", " Xbox \\LIVE ", null, true }, { " AIDS ", " \\AIDS ", null, true }, { "!1", "!!", null, true }, { "\".", ".\"", "\"", false } };
 	public static final String[][] item_IDs =
 			{
 					{ "air" },
@@ -171,7 +138,7 @@ public class myScribe extends JavaPlugin implements Listener {
 					{ "diamond ore" },
 					{ "diamond blocks", "blocks of diamonds" },
 					{ "crafting tables", "crafting bench", "workbench", "work bench" },
-					{ "seeds", "wheat seeds", "seed packets" },
+					{ "wheat", "crops" },
 					{ "farmland blocks" },
 					{ "furnaces", "ovens", "ranges" },
 					{ "burning furnaces" },
@@ -262,7 +229,7 @@ public class myScribe extends JavaPlugin implements Listener {
 					{ "potatoes", "potatos" },
 					{ "wooden buttons", "wood buttons" },
 					{ "monster heads", "heads" },
-					null,
+					{ "anvils" },
 					null,
 					null,
 					null,
@@ -472,7 +439,7 @@ public class myScribe extends JavaPlugin implements Listener {
 					{ "glowstone dust" },
 					{ "raw fish", "uncooked fish", "raw fish", "uncooked fish", "sushi" },
 					{ "cooked fish", "fish" },
-					{ "wool dyes", "dyes" },
+					{ "bonemeal or wool dyes", "wool dyes", "dyes", "bone meals", "bonemeals" },
 					{ "bones" },
 					{ "sugar", "processed sugar", "powdered sugar", "raw sugar", "baker's sugar" },
 					{ "cakes", "birthday cakes" },
@@ -2392,11 +2359,42 @@ public class myScribe extends JavaPlugin implements Listener {
 							"strad records" },
 					{ "\"ward\" music discs", "\"ward\" discs", "\"ward\" records", "\"ward\" CDs", "ward music disc", "ward CDs", "ward discs", "ward records" },
 					{ "\"11\" music discs", "\"11\" discs", "\"11\" records", "\"11\" CDs", "11 music disc", "11 CDs", "11 discs", "11 records" } };
+	private Object[][] default_corrections = { { " i ", " I ", null, true }, { " ik ", " I know ", null, true }, { " ib ", " I'm back ", null, true },
+			{ " ic ", " I see ", null, true }, { " tp ", " teleport ", null, false }, { " idk ", " I don't know ", null, true },
+			{ " idc ", " I don't care ", null, true }, { " ikr ", " I know, right? ", "?", false }, { " ikr ", " I know, right ", null, true },
+			{ " irl ", " in real life ", null, true }, { " wtf ", " what the fuck? ", "?", false }, { " wtf ", " what the fuck ", null, true },
+			{ " wth ", " what the hell? ", "?", false }, { " wth ", " what the hell ", null, true }, { " ftw ", " for the win ", null, true },
+			{ " y ", " why ", "=", false }, { " u ", " you ", null, true }, { " ur ", " your ", null, true }, { " r ", " are ", null, true },
+			{ " o . o ", " \\o.\\o\\ ", null, true }, { " o ", " oh ", null, true }, { " c ", " see ", null, true }, { " k ", " okay ", null, true },
+			{ " kk ", " okay ", null, true }, { " ic ", " I see ", null, true }, { " cya ", " see ya ", null, true }, { " sum1", " someone ", null, true },
+			{ " some1", " someone ", null, true }, { "every1", "everyone", null, true }, { "any1", "anyone", null, true },
+			{ " ttyl ", " I'll talk to you later ", null, true }, { " wb ", " welcome back ", null, true }, { " ty ", " thank you ", null, true },
+			{ " yw ", " you're welcome ", null, true }, { " gb ", " goodbye ", null, true }, { " hb ", " happy birthday ", null, true },
+			{ " gl ", " good luck ", null, true }, { " jk ", " just kidding ", null, true }, { " jking ", " just kidding ", null, true },
+			{ " jkjk ", " just kidding ", null, true }, { " np ", " no problem ", null, true }, { " afk ", " \\a.\\f.\\k. ", "/", true },
+			{ " \\a.\\f.\\k. .", " \\a.\\f.\\k.", null, true }, { " omg ", " oh my God ", null, true }, { " omfg ", " oh my fucking God ", null, true },
+			{ " stfu ", " shut the fuck up ", null, true }, { " btw ", " by the way ", null, true }, { " i gtg ", " I have to go ", null, true },
+			{ " i g2g ", " I have to go ", null, true }, { " igtg ", " I have to go ", null, true }, { " ig2g ", " I have to go ", null, true },
+			{ " gtg ", " I have to go ", null, true }, { " g2g ", " I have to go ", null, true }, { " 2nite ", " tonight ", null, true },
+			{ " l8", "late", null, true }, { " w8", " wait ", null, true }, { " m8", " mate", null, true }, { " i brb ", " I'll be right back ", null, true },
+			{ " ibrb ", " I'll be right back ", null, true }, { " brb ", " I'll be right back ", null, true }, { " nvm ", " never mind ", null, true },
+			{ " ppl ", " people ", null, true }, { " nm ", " never mind ", null, true }, { " tp ", " teleport ", null, true },
+			{ " tpa ", " teleport ", null, true }, { " cuz ", " because ", null, true }, { " plz ", " please ", null, true },
+			{ " ppl ", " people ", null, true }, { " thx ", " thanks ", null, true }, { " thnx ", " thanks ", null, true },
+			{ " xmas ", " Christmas ", null, true }, { " becuz ", " because ", null, true }, { " sry ", " sorry ", null, true },
+			{ " im ", " I'm ", null, true }, { " wont ", " won't ", null, true }, { " didnt ", " didn't ", null, true }, { " dont ", " don't ", null, true },
+			{ " cant ", " can't ", null, true }, { " wouldnt ", " wouldn't ", null, true }, { " shouldnt ", " shouldn't ", null, true },
+			{ " couldnt ", " couldn't ", null, true }, { " isnt ", " isn't ", null, true }, { " aint ", " ain't ", null, true },
+			{ " doesnt ", " doesn't ", null, true }, { " youre ", " you're ", null, true }, { " hes ", " he's ", null, true },
+			{ " shes ", " she's ", null, true }, { " could of ", " could have ", null, true }, { " should of ", "should have ", null, true },
+			{ " would of ", " would have ", null, true }, { " itz ", " it's ", null, true }, { "wierd", "weird", null, true },
+			{ "recieve", "receive", null, true }, { " blowed up ", " blew up ", null, true }, { " blowed it up ", " blew it up ", null, true },
+			{ " RAM ", " \\RAM ", null, true }, { " NASA ", " \\NASA ", null, true }, { " Xbox LIVE ", " Xbox \\LIVE ", null, true },
+			{ " AIDS ", " \\AIDS ", null, true }, { "!1", "!!", null, true }, { "\".", ".\"", "\"", false } };
 	private HashMap<String, String> epithets_by_user = new HashMap<String, String>();
 	private HashMap<String, ArrayList<String>> death_messages_by_cause = new HashMap<String, ArrayList<String>>(),
 			default_death_messages = new HashMap<String, ArrayList<String>>();
 	private HashMap<Player, String> message_beginnings = new HashMap<Player, String>(), command_beginnings = new HashMap<Player, String>();
-	private HashMap<String, Boolean> player_votes = new HashMap<String, Boolean>();
 	private static ArrayList<String> strings_to_correct = new ArrayList<String>(), corrected_strings = new ArrayList<String>(),
 			unless_strings = new ArrayList<String>(), AFK_players = new ArrayList<String>(), players_who_have_accepted_the_rules = new ArrayList<String>(),
 			players_who_have_read_the_rules = new ArrayList<String>(), login_messages = new ArrayList<String>(), logout_messages = new ArrayList<String>();
@@ -2404,14 +2402,16 @@ public class myScribe extends JavaPlugin implements Listener {
 	private static String rules = "", default_epithet = "", default_message_format = "", say_format = "";
 	private static boolean players_must_accept_rules = true, AutoCorrect_on = true, capitalize_first_letter = true, end_with_period = true,
 			change_all_caps_to_italics = true, cover_up_profanities = true, insert_command_usages = true, true_username_required = true,
-			display_death_messages = true, monetary_symbol_comes_before = false;
+			display_death_messages = true;
 
 	// TODO: the AutoCorrections go to default no matter what. Fix it.
+	// TODO: fix first_letter_capitalization...AGAIN
 	// TODO: set up config questions for true_username_required
 	// TODO: fix abbreviation screwups
-	// TODO: fix insert command usages
-	// TODO: finish information parts: item IDs, recipes, and potion recipes
-	// (/potion)
+	// TODO: finish information parts: recipes, and potion recipes (/potion)
+	// /potion with no parameters will tell you basics (splash potions need gunpowder, redstone extends time, etc.)
+	// TODO: make all-caps-to-italics changes capitalize the first letter if the first letter is lowercase
+	// TODO: make a HashMap for Bukkit commands and their usages for inserting command usages
 
 	// plugin enable/disable and the command operator
 	public void onEnable() {
@@ -2615,36 +2615,14 @@ public class myScribe extends JavaPlugin implements Listener {
 
 	// intra-command methods
 	private String AutoCorrect(String message) {
-		if (AutoCorrect_on && !message.startsWith("http") && !message.startsWith("www.")) {
-			while ((message.endsWith("/") && !message.endsWith(":/")) || message.endsWith(",") || message.endsWith(">"))
+		if (AutoCorrect_on && !message.startsWith("http") && !message.startsWith("www.") && !message.startsWith("*") && !message.endsWith("*")) {
+			while ((message.endsWith("/") && !message.endsWith(":/")) || (message.endsWith("\\") && !message.endsWith(":\\")) || message.endsWith(",")
+					|| message.endsWith(">"))
 				message = message.substring(0, message.length() - 1);
 			// use spaces to make punctuation separate words
 			if (message.length() > 1)
 				for (int i = 1; i < message.length(); i++)
-					if ((!message.substring(i - 1, i).toLowerCase().equals(message.substring(i - 1, i).toUpperCase())
-							|| message.substring(i - 1, i).equals("0") || message.substring(i - 1, i).equals("1") || message.substring(i - 1, i).equals("2")
-							|| message.substring(i - 1, i).equals("3") || message.substring(i - 1, i).equals("4") || message.substring(i - 1, i).equals("5")
-							|| message.substring(i - 1, i).equals("6") || message.substring(i - 1, i).equals("7") || message.substring(i - 1, i).equals("8") || message
-							.substring(i - 1, i).equals("9"))
-							&& message.substring(i, i + 1).toLowerCase().equals(message.substring(i, i + 1).toUpperCase())
-							&& !message.substring(i, i + 1).equals(" ")
-							&& !message.substring(i, i + 1).equals("'")
-							&& !message.substring(i, i + 1).equals("\\")
-							&& !message.substring(i, i + 1).equals("-")
-							&& !message.substring(i, i + 1).equals("_")
-							&& (i + 2 > message.length() || !isColorCode(message.substring(i, i + 2), null, null))
-							&& !message.substring(i, i + 1).equals("0")
-							&& !message.substring(i, i + 1).equals("1")
-							&& !message.substring(i, i + 1).equals("2")
-							&& !message.substring(i, i + 1).equals("3")
-							&& !message.substring(i, i + 1).equals("4")
-							&& !message.substring(i, i + 1).equals("5")
-							&& !message.substring(i, i + 1).equals("6")
-							&& !message.substring(i, i + 1).equals("7")
-							&& !message.substring(i, i + 1).equals("8")
-							&& !message.substring(i, i + 1).equals("9"))
-						message = message.substring(0, i) + " " + message.substring(i);
-					else if ((!message.substring(i, i + 1).toLowerCase().equals(message.substring(i, i + 1).toUpperCase())
+					if ((!message.substring(i, i + 1).toLowerCase().equals(message.substring(i, i + 1).toUpperCase())
 							|| message.substring(i, i + 1).equals("0") || message.substring(i, i + 1).equals("1") || message.substring(i, i + 1).equals("2")
 							|| message.substring(i, i + 1).equals("3") || message.substring(i, i + 1).equals("4") || message.substring(i, i + 1).equals("5")
 							|| message.substring(i, i + 1).equals("6") || message.substring(i, i + 1).equals("7") || message.substring(i, i + 1).equals("8") || message
@@ -2671,7 +2649,6 @@ public class myScribe extends JavaPlugin implements Listener {
 						message = message.substring(0, i) + " " + message.substring(i);
 			message = " " + message + " ";
 			// perform corrections
-			console.sendMessage(message);
 			for (int i = 0; i < strings_to_correct.size(); i++)
 				message = replace(message, strings_to_correct.get(i), corrected_strings.get(i), unless_strings.get(i), true_means_before.get(i), true);
 			String[] words = message.split(" ");
@@ -2732,11 +2709,10 @@ public class myScribe extends JavaPlugin implements Listener {
 					message = message + " " + word;
 			if (cover_up_profanities) {
 				message = replace(message, " ass ", " a&kss%k ", null, true, true);
-				message = replace(message, " dumbass ", " dumba&kss%k ", null, true, true);
-				message = replace(message, " badass ", " bada&kss%k ", null, true, true);
 				for (String profanity : profanities)
 					message = replace(message, profanity, profanity.substring(0, 1) + "&k" + profanity.substring(1) + "%k", null, true, true);
 			}
+			message = replace(message, "./ ", "./", null, true, true);
 			if (insert_command_usages)
 				for (int i = 0; i < message.length() - 1; i++) {
 					if (!message.contains("./"))
@@ -2744,7 +2720,7 @@ public class myScribe extends JavaPlugin implements Listener {
 					if (message.substring(i, i + 2).equals("./")) {
 						int end_index = i + 2;
 						while (end_index < message.length())
-							if (message.substring(end_index, end_index + 1).toLowerCase().equals(message.substring(end_index, end_index + 1).toUpperCase()))
+							if (!message.substring(end_index, end_index + 1).toLowerCase().equals(message.substring(end_index, end_index + 1).toUpperCase()))
 								end_index++;
 							else
 								try {
@@ -2753,8 +2729,10 @@ public class myScribe extends JavaPlugin implements Listener {
 								} catch (NumberFormatException exception) {
 									break;
 								}
-						PluginCommand command = server.getPluginCommand(message.substring(i + 2, end_index));
+						console.sendMessage("\"" + message.substring(i + 2, end_index) + "\"");
+						PluginCommand command = server.getPluginCommand(message.substring(i + 2, end_index).toLowerCase());
 						if (command != null) {
+							console.sendMessage("Found it.");
 							String color_code = "f";
 							if (command.getPlugin().getName().equals("myScribe"))
 								color_code = "9";
@@ -2778,49 +2756,11 @@ public class myScribe extends JavaPlugin implements Listener {
 								}
 								usage = usage + ")";
 							}
-							message = replace(message, "./" + command.getName(), usage, null, true, true);
+							console.sendMessage("message: \"" + message + "\"");
+							message = replace(message, "./" + message.substring(i + 2, end_index), usage, null, true, true);
 						}
 					}
 				}
-			// capitalize the first letter of every sentence if it is not a
-			// correction
-			if (capitalize_first_letter && !message.startsWith("*") && !message.endsWith("*")) {
-				message = "." + message;
-				for (int i = 0; i < message.length(); i++) {
-					String check_message = message.substring(i);
-					while (check_message.startsWith(" "))
-						check_message = check_message.substring(1);
-					// locate terminal punctuation and make sure that the thing
-					// after them
-					// isn't an emoticon
-					if ((message.substring(i, i + 1).equals(".") || message.substring(i, i + 1).equals("!") || message.substring(i, i + 1).equals("?"))
-							&& !check_message.startsWith(":")
-							&& !check_message.startsWith(";")
-							&& !check_message.startsWith("=")
-							&& !(check_message.length() >= 3 && check_message.substring(0, 1).equalsIgnoreCase(check_message.substring(2, 3)) && check_message
-									.substring(0, 1).equalsIgnoreCase("o"))) {
-						for (i = i; i < message.length() - 1; i++)
-							if ((message.substring(i, i + 1).toUpperCase().equals(message.substring(i, i + 1).toLowerCase())
-									&& !message.substring(i, i + 1).equals("0") && !message.substring(i, i + 1).equals("1")
-									&& !message.substring(i, i + 1).equals("2") && !message.substring(i, i + 1).equals("3")
-									&& !message.substring(i, i + 1).equals("4") && !message.substring(i, i + 1).equals("5")
-									&& !message.substring(i, i + 1).equals("6") && !message.substring(i, i + 1).equals("7")
-									&& !message.substring(i, i + 1).equals("8") && !message.substring(i, i + 1).equals("9"))
-									|| (i < message.length() - 2 && isColorCode(message.substring(i, i + 2), null, null))) {
-								if (i < message.length() - 2 && isColorCode(message.substring(i, i + 2), null, null))
-									i++;
-							} else
-								break;
-						// don't capitalize after an ellipsis
-						if (i < 4 || !message.substring(i - 4, i).equals("... "))
-							if (i + 1 == message.length())
-								message = message.substring(0, i) + message.substring(i, i + 1).toUpperCase();
-							else
-								message = message.substring(0, i) + message.substring(i, i + 1).toUpperCase() + message.substring(i + 1);
-					}
-				}
-				message = message.substring(1);
-			}
 			// eliminate extra spaces between letters and punctuation
 			message = replace(replace(message, "... ", "...", null, true, true), "/ ", "/", null, true, true);
 			int quote_counter = 0;
@@ -2853,16 +2793,49 @@ public class myScribe extends JavaPlugin implements Listener {
 											|| message.substring(end_index, end_index + 1).equals("8") || message.substring(end_index, end_index + 1).equals(
 											"9")))
 								end_index++;
-							if (server.getPluginCommand(message.substring(i + 1, end_index)) == null)
+							// TODO: change the list of commands here to Bukkit_command_usages.keySet().contains(message.substring(i+1, end_index)
+							if (server.getPluginCommand(message.substring(i + 1, end_index)) == null
+									&& !(message.substring(i + 1, end_index).equalsIgnoreCase("version")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("plugins")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("reload")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("timings")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("tell")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("kill")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("me")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("help")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("?")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("kick")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("ban")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("banlist")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("pardon")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("ban-ip")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("pardon-ip")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("op")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("deop")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("tp")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("give")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("stop")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("save-all")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("save-off")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("save-on")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("list")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("say")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("whitelist")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("time")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("gamemode")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("xp")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("toggledownfall")
+											|| message.substring(i + 1, end_index).equalsIgnoreCase("defaultgamemode") || message.substring(i + 1, end_index)
+											.equalsIgnoreCase("seed")))
 								while (i > 0 && message.substring(i - 1, i).equals(" "))
 									message = message.substring(0, i - 1) + message.substring(i);
 						} else if (message.substring(i, i + 1).equals("\"") || message.substring(i, i + 1).equals("(")
 								|| message.substring(i, i + 1).equals("[") || message.substring(i, i + 1).equals("{"))
-							while (i < message.length() && message.substring(i, i + 1).equals(" "))
-								if (i == message.length() - 1)
-									message = message.substring(0, i);
+							while (i < message.length() - 1 && message.substring(i + 1, i + 2).equals(" "))
+								if (i == message.length() - 2)
+									message = message.substring(0, i + 1);
 								else
-									message = message.substring(0, i) + message.substring(i + 1);
+									message = message.substring(0, i + 1) + message.substring(i + 2);
 					}
 				}
 			}
@@ -2870,6 +2843,48 @@ public class myScribe extends JavaPlugin implements Listener {
 			message = replace(replace(replace(message, "%o.", ".%o", null, true, true), "%o!", "!%o", null, true, true), "%o?", "?%o", null, true, true);
 			while (message.length() >= 2 && isColorCode(message.substring(message.length() - 2), null, null))
 				message = message.substring(0, message.length() - 2);
+			// capitalize the first letter of every sentence if it is not a correction
+			if (capitalize_first_letter && !message.startsWith("*") && !message.endsWith("*")) {
+				message = "." + message;
+				for (int i = 0; i < message.length(); i++) {
+					String check_message = message.substring(i);
+					while (check_message.startsWith(" "))
+						check_message = check_message.substring(1);
+					// locate terminal punctuation and make sure that the thing after them isn't an emoticon
+					if ((message.substring(i, i + 1).equals(".") || message.substring(i, i + 1).equals("!") || message.substring(i, i + 1).equals("?"))
+							&& !check_message.startsWith(":")
+							&& !check_message.startsWith(";")
+							&& !check_message.startsWith("=")
+							&& !(check_message.length() >= 3 && check_message.substring(0, 1).equalsIgnoreCase(check_message.substring(2, 3)) && check_message
+									.substring(0, 1).equalsIgnoreCase("o"))) {
+						for (i = i; i < message.length() - 1; i++)
+							// if it's not a letter or number, skip it
+							if (message.substring(i, i + 1).toUpperCase().equals(message.substring(i, i + 1).toLowerCase())
+									&& !message.substring(i, i + 1).equals("0") && !message.substring(i, i + 1).equals("1")
+									&& !message.substring(i, i + 1).equals("2") && !message.substring(i, i + 1).equals("3")
+									&& !message.substring(i, i + 1).equals("4") && !message.substring(i, i + 1).equals("5")
+									&& !message.substring(i, i + 1).equals("6") && !message.substring(i, i + 1).equals("7")
+									&& !message.substring(i, i + 1).equals("8") && !message.substring(i, i + 1).equals("9")) {
+								// skip two characters if it's a color code
+								if (i < message.length() - 2 && isColorCode(message.substring(i, i + 2), null, null))
+									i++;
+							}
+							// both of these stop the loop, but if i=message.length+1, it means it found a "\" before the letter, so it should cancel
+							// capitalization
+							else if (message.substring(i, i + 1).equals("\\"))
+								i = message.length() + 1;
+							else
+								break;
+						// don't capitalize after an ellipsis or a "\" (with the presence of a "\" indicated with i==message.length()+1
+						if (i < message.length() + 1 && (i < 3 || !message.substring(i - 3, i).equals("...")))
+							if (i + 1 == message.length())
+								message = message.substring(0, i) + message.substring(i, i + 1).toUpperCase();
+							else
+								message = message.substring(0, i) + message.substring(i, i + 1).toUpperCase() + message.substring(i + 1);
+					}
+				}
+				message = message.substring(1);
+			}
 			// end lines with a period if no terminal punctuation exists and the
 			// message doesn't start with or end with a * (correction) and the
 			// message's last or second to last characters are not colons
@@ -2882,9 +2897,7 @@ public class myScribe extends JavaPlugin implements Listener {
 					&& !message.endsWith("!\"")
 					&& !message.endsWith("?\"")
 					&& message.length() > 0
-					&& !(message.startsWith("*")
-							|| message.endsWith("*")
-							|| message.endsWith(":")
+					&& !(message.endsWith(":")
 							|| message.endsWith("=")
 							|| message.endsWith(";")
 							|| (message.length() >= 2 && (message.substring(message.length() - 2, message.length() - 1).equals(":")
@@ -3246,14 +3259,6 @@ public class myScribe extends JavaPlugin implements Listener {
 			command_beginnings.remove(event.getPlayer().getName());
 	}
 
-	// TEMPORARY
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void cancelFire(BlockIgniteEvent event) {
-		event.setCancelled(true);
-	}
-
-	// END TEMPORARY
-
 	// loading
 	private void loadTheAutoCorrections(CommandSender sender) {
 		boolean failed = false;
@@ -3350,6 +3355,7 @@ public class myScribe extends JavaPlugin implements Listener {
 		} catch (FileNotFoundException exception) {
 			sender.sendMessage(ChatColor.DARK_RED + "The AutoCorrections.txt I created a few milliseconds ago doesn't exist. -_-");
 			exception.printStackTrace();
+			failed = true;
 		} catch (IOException exception) {
 			sender.sendMessage(ChatColor.DARK_RED + "I got an IOException while trying to save your AutoCorrections.");
 			exception.printStackTrace();
@@ -3419,6 +3425,7 @@ public class myScribe extends JavaPlugin implements Listener {
 		} catch (FileNotFoundException exception) {
 			sender.sendMessage(ChatColor.DARK_RED + "The death messages.txt I created a few milliseconds ago doesn't exist. -_-");
 			exception.printStackTrace();
+			failed = true;
 		} catch (IOException exception) {
 			sender.sendMessage(ChatColor.DARK_RED + "I got an IOException while trying to save your death messages.");
 			exception.printStackTrace();
@@ -3497,6 +3504,7 @@ public class myScribe extends JavaPlugin implements Listener {
 		} catch (FileNotFoundException exception) {
 			sender.sendMessage(ChatColor.DARK_RED + "The epithets.txt I created a few milliseconds ago doesn't exist. -_-");
 			exception.printStackTrace();
+			failed = true;
 		} catch (IOException exception) {
 			sender.sendMessage(ChatColor.DARK_RED + "I got an IOException while trying to save your epithets.");
 			exception.printStackTrace();
@@ -3588,6 +3596,7 @@ public class myScribe extends JavaPlugin implements Listener {
 		} catch (FileNotFoundException exception) {
 			sender.sendMessage(ChatColor.DARK_RED + "The rules.txt I created a few milliseconds ago doesn't exist. -_-");
 			exception.printStackTrace();
+			failed = true;
 		} catch (IOException exception) {
 			sender.sendMessage(ChatColor.DARK_RED + "I got an IOException while trying to save your rules.");
 			exception.printStackTrace();
@@ -4030,9 +4039,8 @@ public class myScribe extends JavaPlugin implements Listener {
 					query = query + " " + parameter;
 			try {
 				int id = Integer.parseInt(query);
-				console.sendMessage("\"" + item_IDs[id][0].substring(0, 1) + "\"");
 				if (item_IDs[id] != null)
-					if (item_IDs[id][0].endsWith("s"))
+					if (item_IDs[id][0].endsWith("s") && !item_IDs[id][0].endsWith("ss"))
 						sender.sendMessage(ChatColor.BLUE + item_IDs[id][0].substring(0, 1).toUpperCase() + item_IDs[id][0].substring(1) + " have the I.D. "
 								+ id + ".");
 					else
@@ -4041,12 +4049,27 @@ public class myScribe extends JavaPlugin implements Listener {
 				else
 					sender.sendMessage(ChatColor.RED + "No item has the I.D. " + id + ".");
 			} catch (NumberFormatException exception) {
-				for (int id = 0; id < item_IDs.length; id++)
-					for (String item_name : item_IDs[id])
-						if (item_name.toLowerCase().startsWith(query.toLowerCase())) {
-							sender.sendMessage(ChatColor.BLUE + item_name + " has the I.D. " + id + ".");
-							return;
-						}
+				String item_name = null;
+				int id = -1;
+				// complete the item name
+				for (int i = 0; i < item_IDs.length; i++)
+					if (item_IDs[i] != null)
+						for (String my_item_name : item_IDs[i])
+							if (my_item_name.toLowerCase().startsWith(query.toLowerCase()))
+								// Length of the name of the item is used to determine the closest match. This ensures that searching "flint", for example, will
+								// return "flint" instead of "flint and steel" even though "flint and steel" is found first since it has a smaller item I.D.
+								if (item_name == null || my_item_name.length() < item_name.length()) {
+									item_name = item_IDs[i][0];
+									id = i;
+								}
+				// if it found it, send the message
+				if (item_name != null) {
+					if (item_name.endsWith("s") && !item_name.endsWith("ss"))
+						sender.sendMessage(ChatColor.BLUE + item_name.substring(0, 1).toUpperCase() + item_name.substring(1) + " have the I.D. " + id + ".");
+					else
+						sender.sendMessage(ChatColor.BLUE + item_name.substring(0, 1).toUpperCase() + item_name.substring(1) + " has the I.D. " + id + ".");
+					return;
+				}
 				if (query.toLowerCase().startsWith("a") || query.toLowerCase().startsWith("e") || query.toLowerCase().startsWith("i")
 						|| query.toLowerCase().startsWith("o") || query.toLowerCase().startsWith("u"))
 					sender.sendMessage(ChatColor.RED + "Sorry, but I don't know what an \"" + query + "\" is.");

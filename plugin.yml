@@ -24,11 +24,6 @@ commands:
       description: This command allows users to set epithets.
       usage: |
            /<command> (for:[player]) [epithet]
-   id:
-      aliases: [ids]
-      description: This command gives you the I.D. for an item that your holding or the item you specify or it gives you the name of the item with the given I.D.
-      usage: |
-           /<command> (item name/I.D.)
    myScribe:
       aliases: [mS]
       description: This command updates the save files with all the new info from the server or vice versa.
@@ -39,8 +34,3 @@ commands:
       description: This command displays all the rules for your server.
       usage: |
            /<command> (page #)
-   say:
-      aliases: [broadcast, bc]
-      description: This command broadcasts a message across the server.
-      usage: |
-           /<command> [message]
