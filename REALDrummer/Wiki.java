@@ -1,6 +1,8 @@
 package REALDrummer;
 
-public class myPluginWiki {
+import org.bukkit.ChatColor;
+
+public class Wiki {
 	// String[item I.D.][special data][all the names that could be applied to that item]
 	// the special data works like this:
 	// [0] is the name for the overall item, e.g. "logs" for any type of log, which all have the I.D. 17; the other indexes are [data+1], e.g. birch logs (I.D.
@@ -598,9 +600,7 @@ public class myPluginWiki {
 		return new Integer[] { result_id, result_data };
 	}
 
-	public static String getItemName(int id, int data) {
-		// add 1 to the data to get the real data (remember: [0] is the general name and [1] is data = 0)
-		data += 1;
+	public static String getItemName(int id, int data, boolean give_data_suffix) {
 		// we need to adjust the query I.D.s based on the gaps in I.D.s
 		// for the potion data values gaps
 		if (id == 373)
@@ -622,7 +622,24 @@ public class myPluginWiki {
 				id -= (item_gaps[i][1] - item_gaps[i][0]);
 			else
 				break;
-		return item_IDs[id][data + 1][0];
+		String item = null;
+		try {
+			item = item_IDs[id][data + 1][0];
+		} catch (NumberFormatException exception) {
+			try {
+				item = item_IDs[id][data % 4 + 1][0];
+			} catch (NumberFormatException exception2) {
+				item = item_IDs[id][0][0];
+			}
+		}
+		if (item != null && give_data_suffix && data != -1)
+			item += " (" + data + ")";
+		else if (item == null) {
+			item = "something with the I.D. " + id;
+			if (give_data_suffix && data > 0)
+				item += ":" + data;
+		}
+		return item;
 	}
 
 	public static Integer[] getEntityIdAndData(String[] item_name) {
@@ -663,15 +680,31 @@ public class myPluginWiki {
 		return new Integer[] { result_id, result_data };
 	}
 
-	public static String getEntityName(int id, int data) {
-		// add 1 to the data to get the real data (remember: [0] is the general name and [1] is data = 0)
-		data += 1;
+	public static String getEntityName(int id, int data, boolean give_data_suffix) {
 		// we need to adjust the query I.D.s based on the gaps in I.D.s for the entity I.D. gaps
 		for (int i = entity_gaps.length - 1; i > 0; i--)
 			if (id > entity_gaps[i][1])
 				id -= (entity_gaps[i][1] - entity_gaps[i][0]);
 			else
 				break;
-		return entity_IDs[id][data + 1][0];
+		String entity = null;
+		try {
+			entity = entity_IDs[id][data + 1][0];
+		} catch (NumberFormatException exception) {
+			entity = entity_IDs[id][0][0];
+		}
+		if (entity != null && give_data_suffix && data != -1)
+			entity += " (" + data + ")";
+		else if (entity == null) {
+			entity = "something with the I.D. " + id;
+			if (give_data_suffix && data > 0)
+				entity += ":" + data;
+		}
+		return entity;
+	}
+
+	public static String getRecipe(int id, int data) {
+		// TODO
+		return ChatColor.GOLD + "Coming soon to a server near you!";
 	}
 }
