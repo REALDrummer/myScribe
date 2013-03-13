@@ -2604,7 +2604,7 @@ public class myScribe extends JavaPlugin implements Listener {
 			for (String key : this.login_messages.keySet()) {
 				write.write("==== " + key + " ====");
 				write.newLine();
-				if (key.startsWith("\\[")) {
+				if (key.startsWith("[")) {
 					for (String message : this.login_messages.get(key)) {
 						write.write(message);
 						write.newLine();
@@ -2614,7 +2614,7 @@ public class myScribe extends JavaPlugin implements Listener {
 			for (String key : this.login_messages.keySet()) {
 				write.write("==== " + key + " ====");
 				write.newLine();
-				if (!key.startsWith("\\[")) {
+				if (!key.startsWith("[")) {
 					for (String message : this.login_messages.get(key)) {
 						write.write(message);
 						write.newLine();
@@ -2660,7 +2660,7 @@ public class myScribe extends JavaPlugin implements Listener {
 			for (String key : this.logout_messages.keySet()) {
 				write.write("==== " + key + " ====");
 				write.newLine();
-				if (key.startsWith("\\[")) {
+				if (key.startsWith("[")) {
 					for (String message : this.logout_messages.get(key)) {
 						write.write(message);
 						write.newLine();
@@ -2670,7 +2670,7 @@ public class myScribe extends JavaPlugin implements Listener {
 			for (String key : this.logout_messages.keySet()) {
 				write.write("==== " + key + " ====");
 				write.newLine();
-				if (!key.startsWith("\\[")) {
+				if (!key.startsWith("[")) {
 					for (String message : this.logout_messages.get(key)) {
 						write.write(message);
 						write.newLine();
