@@ -639,41 +639,70 @@ public class Wiki {
 	// since 158 is the last block I.D.), there is a 98-number gap.
 	// there are two numbers in each item in this list: the item I.D. of the last item before the gap and the item I.D. of the first item after the gap
 	// the point of this is to avoid what I had originally, which was just an insanely long list of null values in item_IDs itself
+	private static int[] must_be_attached_bottom_only_IDs = { 6, 26, 27, 28, 31, 32, 37, 38, 39, 40, 55, 59, 63, 64, 66, 70, 71, 72, 78, 81, 83, 93, 94, 104, 105, 111, 115,
+			132, 140, 147, 148, 149, 150, 157 }, must_be_attached_can_be_sideways_IDs = { 50, 65, 68, 69, 75, 76, 77, 96, 106, 127, 131 };
 	private static short[][] item_gaps = { { 158, 256 }, { 408, 2256 } }, entity_gaps = { { 2, 9 }, { 22, 41 }, { 66, 90 }, { 99, 120 }, { 120, 200 } }, potion_data_gaps = {
 			{ 0, 16 }, { 16, 32 }, { 32, 64 }, { 64, 8193 }, { 8206, 8225 }, { 8229, 8233 }, { 8236, 8257 }, { 8266, 8270 }, { 8270, 16385 }, { 16398, 16417 },
 			{ 16421, 16425 }, { 16428, 16449 }, { 16458, 16462 } }, spawn_egg_data_gaps = { { -1, 50 }, { 66, 90 }, { 98, 120 } };
 
-	// TODO: modify getEntityIdAndData to account for "something with the I.D." and data suffix instances
-
 	// working methods
-	public static Integer[] getItemIdAndData(String[] item_name) {
+	/**
+	 * This method returns a two-item Integer array or <b>null</b>. <tt>[0]</tt> is the I.D. of the item given by <tt>item_name</tt>. <tt>[1]</tt> is the data
+	 * value of the item given, e.g. 2 for birch wood (because all logs have the I.D. 17, but a data value of 2 refers to birch wood specifically). If
+	 * <tt><b>item_name</b></tt> specifies a general item name such as "logs", the data value returned will be -1.
+	 * 
+	 * @param item_name
+	 *            is the name of the item or block type that was specified split into separate words.
+	 * @param item_ID
+	 *            is <b>true</b> if this method should only return item I.D.s and not block type I.D.s, <b>false</b> if this method should only return block
+	 *            type I.D.s and not item I.D.s, or <b>null</b> if it should return either item I.D.s or block type I.D.s, in which case it will proritize item
+	 *            I.D.s over block type I.D.s.
+	 * @return the I.D. and numerical data value for the item given by name in <tt><b>item_name</tt></b> in a two-item Integer array or <tt><b>null</b></tt> if
+	 *         <b>1)</b> the item specified does not exist or <b>2)</b> the object specified is an item, not a block type, and it was specified in
+	 *         <tt><b>item_ID</b></tt> that this method should only return block types or vice versa.
+	 * @NOTE This method returns both the I.D. and the data value of an item based on the item's name because it encourages the programmer to only use this
+	 *       method once as necessary, not once to get the I.D. and again to get the data. It is a long, somewhat complex method and it must search through
+	 *       hundreds and hundreds of Strings in the <tt>item_IDs</tt> array to find a match. This method should only be called when necessary and results
+	 *       returned by this method should be stored in a variable if needed more than once; do not simply call this method a second time.
+	 * @see {@link #getItemIdAndData(String, Boolean) getItemIdAndData(String, Boolean)}, {@link #getItemIdAndDataString(String[], Boolean)
+	 *      getItemIdAndDataString(String[], Boolean)}, and {@link #getItemIdAndDataString(String, Boolean) getItemIdAndDataString(String, Boolean)}
+	 */
+	public static Integer[] getItemIdAndData(String[] item_name, Boolean item_ID) {
 		Integer result_id = null, result_data = null, result_i = null;
-		for (int id = 0; id < item_IDs.length; id++)
-			if (item_IDs[id] != null)
-				for (int data = 0; data < item_IDs[id].length; data++)
-					if (item_IDs[id][data] != null)
-						for (int i = 0; i < item_IDs[id][data].length; i++) {
+		int start_id = 0;
+		// if item_ID is true, we only want item I.D.s, so start searching at item I.D.s
+		if (item_ID != null && item_ID)
+			start_id = item_gaps[0][0] + 1;
+		for (int check_id = start_id; check_id < item_IDs.length; check_id++) {
+			if (item_IDs[check_id] != null)
+				for (int check_data = 0; check_data < item_IDs[check_id].length; check_data++)
+					if (item_IDs[check_id][check_data] != null)
+						for (int i = 0; i < item_IDs[check_id][check_data].length; i++) {
 							boolean contains_query = true;
 							for (String word : item_name)
 								// if word starts and ends with parentheses, it's a data suffix, so ignore it in the search; also ignore articles
 								if (!(word.startsWith("(") && word.endsWith(")")) && !word.equalsIgnoreCase("a") && !word.equalsIgnoreCase("an")
 										&& !word.equalsIgnoreCase("the") && !word.equalsIgnoreCase("some")
-										&& !item_IDs[id][data][i].toLowerCase().contains(word.toLowerCase())) {
+										&& !item_IDs[check_id][check_data][i].toLowerCase().contains(word.toLowerCase())) {
 									contains_query = false;
 									break;
 								}
 							// translation of this if statement: if the item contains the query and either we haven't found another result yet, the old result
 							// has a longer name than this new one, or the length of the names is the same but this new result is an item I.D. while the old one
-							// is a block I.D., then change the current result to this new item
+							// is a block I.D. and item_ID is null, then change the current result to this new item
 							if (contains_query
-									&& (result_id == null || item_IDs[result_id][result_data][result_i].length() > item_IDs[id][data][i].length() || (item_IDs[result_id][result_data][result_i]
-											.length() == item_IDs[id][data][i].length()
-											&& result_id < 256 && id >= 256))) {
-								result_id = id;
-								result_data = data;
+									&& (result_id == null || item_IDs[result_id][result_data][result_i].length() > item_IDs[check_id][check_data][i].length() || (item_IDs[result_id][result_data][result_i]
+											.equals(item_IDs[check_id][check_data][i])
+											&& item_ID == null && result_id < check_id))) {
+								result_id = check_id;
+								result_data = check_data;
 								result_i = i;
 							}
 						}
+			// if item_IDs is false, we don't want item I.D.s, so stop checking after we have checked the first part, the block I.D.s
+			if (check_id > item_gaps[0][0] && item_ID != null && !item_ID)
+				break;
+		}
 		// if we returned no results, it's possible that the object was "something with the I.D. [id](":"[data])"
 		if (result_id == null)
 			if (item_name[0].equalsIgnoreCase("something") && item_name[1].equalsIgnoreCase("with") && item_name[2].equalsIgnoreCase("the")
@@ -681,7 +710,7 @@ public class Wiki {
 				try {
 					// try reading it as "something with the I.D. [id]"
 					result_id = Integer.parseInt(item_name[4]);
-					result_data = 0;
+					result_data = -1;
 					return new Integer[] { result_id, result_data };
 				} catch (NumberFormatException exception) {
 					try {
@@ -758,6 +787,26 @@ public class Wiki {
 		return new Integer[] { result_id, result_data };
 	}
 
+	/**
+	 * This method returns the name of the item specified by the item or block type I.D. and data given.
+	 * 
+	 * @param id
+	 *            is the item or block type I.D.
+	 * @param data
+	 *            is the numerical data value for the item or block.
+	 * @param give_data_suffix
+	 *            specifies whether or not the name of the item should include the numerical data value at the end of the item name in parentheses (e.g.
+	 *            "a trapdoor <b>(16)</b>"). For logging purposes in myScribe, for example, we should be as specific as possible on information about the
+	 *            item, so this argument should be <b>true</b>. However, for messages to users for commands like <i>/id</i>, the data suffix is not helpful and
+	 *            looks awkward, so this argument should be <b>false</b>.
+	 * @param singular
+	 *            specifies whether the item name returned should be returned in the singular form (e.g. "a lever") or in the plural form (e.g. "levers").
+	 *            Singular forms include an article at the beginning. Non-countable items like grass are the same as their plural forms, but with "some" at the
+	 *            beginning ("grass" --> "some grass").
+	 * @return
+	 * @see {@link #getItemName(Block, boolean, boolean) getItemName(Block, boolean, boolean)} and {@link #getItemName(ItemStack, boolean, boolean)
+	 *      getItemName(ItemStack, boolean, boolean)}
+	 */
 	public static String getItemName(int id, int data, boolean give_data_suffix, boolean singular) {
 		// return null if the potion data is inside a gap
 		if (id == 373)
@@ -815,6 +864,24 @@ public class Wiki {
 		return item;
 	}
 
+	/**
+	 * This method returns a two-item Integer array or <b>null</b>. <tt>[0]</tt> is the I.D. of the entity given by <tt>entity_name</tt>. <tt>[1]</tt> is the
+	 * data value of the item given, e.g. 1 for charged creepers (because all creepers have the I.D. 50, but a data value of 1 refers to charged creepers
+	 * specifically). If <tt><b>entity_name</b></tt> specifies a general item name such as "creepers", the data value returned will be -1.
+	 * 
+	 * @param entity_name
+	 *            is <b>true</b> if this method should only return item I.D.s and not block type I.D.s, <b>false</b> if this method should only return block
+	 *            type I.D.s and not item I.D.s, or <b>null</b> if it should return either item I.D.s or block type I.D.s, in which case it will proritize item
+	 *            I.D.s over block type I.D.s.
+	 * @return the I.D. and numerical data value for the item given by name in <tt><b>entity_name</tt></b> in a two-item Integer array or <tt><b>null</b></tt>
+	 *         if the item specified does not exist.
+	 * @see {@link #getEntityIdAndData(String) getEntityIdAndData(String)}, {@link #getEntityIdAndDataString(String[]) getEntityIdAndDataString(String[])}, and
+	 *      {@link #getEntityIdAndDataString(String) getEntityIdAndDataString(String)}
+	 * @NOTE This method returns both the I.D. and the data value of an entity based on the entity's name because it encourages the programmer to only use this
+	 *       method once as necessary, not once to get the I.D. and again to get the data. It is a long, somewhat complex method and it must search through
+	 *       hundreds of Strings in the <tt>entity_IDs</tt> array to find a match. This method should only be called when necessary and results returned by this
+	 *       method should be stored in a variable if needed more than once; do not simply call this method a second time.
+	 */
 	public static Integer[] getEntityIdAndData(String[] entity_name) {
 		Integer result_id = null, result_data = null, result_i = null;
 		for (int id = 0; id < entity_IDs.length; id++)
@@ -950,13 +1017,27 @@ public class Wiki {
 		return ChatColor.GOLD + "Coming soon to a server near you!";
 	}
 
-	// alternate input or output methods
-	public static Integer[] getItemIdAndData(String item_name) {
-		return getItemIdAndData(item_name.split(" "));
+	public static Boolean mustBeAttached(int id, Boolean bottom_only) {
+		if (getItemName(id, -1, false, false) == null)
+			return null;
+		if (bottom_only == null || bottom_only)
+			for (int i = 0; i < must_be_attached_bottom_only_IDs.length; i++)
+				if (must_be_attached_bottom_only_IDs[i] == id)
+					return true;
+		if (bottom_only == null || !bottom_only)
+			for (int i = 0; i < must_be_attached_can_be_sideways_IDs.length; i++)
+				if (must_be_attached_can_be_sideways_IDs[i] == id)
+					return true;
+		return false;
 	}
 
-	public static String getItemIdAndDataString(String[] item_name) {
-		Integer[] id_and_data = getItemIdAndData(item_name);
+	// alternate input or output methods
+	public static Integer[] getItemIdAndData(String item_name, Boolean item_ID) {
+		return getItemIdAndData(item_name.split(" "), item_ID);
+	}
+
+	public static String getItemIdAndDataString(String[] item_name, Boolean item_ID) {
+		Integer[] id_and_data = getItemIdAndData(item_name, item_ID);
 		if (id_and_data == null)
 			return null;
 		String result = String.valueOf(id_and_data[0]);
@@ -965,8 +1046,8 @@ public class Wiki {
 		return result;
 	}
 
-	public static String getItemIdAndDataString(String item_name) {
-		return getItemIdAndDataString(item_name.split(" "));
+	public static String getItemIdAndDataString(String item_name, Boolean item_ID) {
+		return getItemIdAndDataString(item_name.split(" "), item_ID);
 	}
 
 	public static String getItemName(ItemStack item, boolean give_data_suffix, boolean singular) {
