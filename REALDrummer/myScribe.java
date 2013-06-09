@@ -289,8 +289,8 @@ public class myScribe extends JavaPlugin implements Listener {
 	// mail = new HashMap<recipient, ArrayList<messages>>
 	private ArrayList<Announcement> announcements = new ArrayList<Announcement>();
 	private ArrayList<AutoCorrection> AutoCorrections = new ArrayList<AutoCorrection>();
-	private HashMap<String, String> epithets_by_user = new HashMap<String, String>(),
-			muted_players = new HashMap<String, String>(),
+	private static HashMap<String, String> epithets_by_user = new HashMap<String, String>();
+	private HashMap<String, String> muted_players = new HashMap<String, String>(),
 			birthday_players = new HashMap<String, String>(),
 			birthday_today = new HashMap<String, String>();
 	private HashMap<String, ArrayList<String>> death_messages_by_cause = new HashMap<String, ArrayList<String>>(),
@@ -751,6 +751,10 @@ public class myScribe extends JavaPlugin implements Listener {
 			return true;
 		}
 		return false;
+	}
+
+	public static String getEpithet(String player) {
+		return epithets_by_user.get(player);
 	}
 
 	// intra-command methods
@@ -2317,20 +2321,18 @@ public class myScribe extends JavaPlugin implements Listener {
 					config_target = save_line.substring(4,
 							save_line.length() - 4);
 					// eliminate preceding and following spaces
-					while (config_target.startsWith(" "))
-						config_target = config_target.substring(1);
-					while (config_target.endsWith(" "))
-						config_target = config_target.substring(0,
-								config_target.length() - 1);
+					config_target = config_target.trim();
 				} else {
 					if (save_line.startsWith("++") && save_line.endsWith("++")) {
 						// eliminate preceding and following spaces
-						while (save_line.startsWith("++ "))
-							save_line = "++" + save_line.substring(3);
-						while (save_line.endsWith(" ++"))
+						if (save_line.startsWith("++")) {
+							save_line = "++" + save_line.substring(2).trim();
+						}
+						if (save_line.endsWith("++")) {
 							save_line = save_line.substring(0,
-									save_line.length() - 3)
+									save_line.length() - 2).trim()
 									+ "++";
+						}
 					}
 					current_messages.add(save_line);
 				}
@@ -3334,7 +3336,7 @@ public class myScribe extends JavaPlugin implements Listener {
 				epithet = parameters[i];
 		if (!owner.equalsIgnoreCase("server") && !epithet.equals("")) {
 			// eliminate preceding spaces
-			epithet.trim();
+			epithet = epithet.trim();
 			boolean epithet_is_acceptable = epithet.length() > 0;
 			if (true_username_required && player != null
 					&& !player.hasPermission("myscribe.admin")) {
