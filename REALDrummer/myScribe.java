@@ -1817,7 +1817,7 @@ public class myScribe extends JavaPlugin implements Listener {
 					.replaceAll("\\[epithet\\]", epithet));
 		}
 		if (!players_who_have_accepted_the_rules.contains(event.getPlayer()
-				.getName())) {
+				.getName()) && event.getPlayer().hasPlayedBefore()) {
 			event.getPlayer()
 					.sendMessage(
 							ChatColor.RED
