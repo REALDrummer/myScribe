@@ -56,13 +56,12 @@ public class myScribe extends JavaPlugin implements Listener {
 			disable_messages = {
 					"Though I am now disabled, I shall continue to spread proper literacy across the globe in the hope that some day soon, we will see people speaking proper English once again.",
 					"If you believe plugins can't dream,...\n...you're wrong.", "Farewell, good literate sir.", "Good evening, Sir Operator.",
-					"I shall return with the gifts of proper language upon the arrival of the upcoming morn." }, color_color_code_chars = { "0", "1", "2", "3", "4", "5", "6",
-					"7", "8", "9", "a", "b", "c", "d", "e", "f" }, formatting_color_code_chars = { "k", "l", "m", "n", "o", "r" }, profanities = { "fuck", "fck", "fuk",
-					"Goddamn", "Goddam", "damn", "shit", "dammit", "bastard", "bitch", "btch", "damnit", "cunt", "asshole", "bigass", "dumbass", "badass", "dick" },
-			borders = { "[]", "\\/", "\"*", "_^", "-=", ":;", "&%", "#@", ",.", "<>", "~$", ")(" }, yeses = { "yes", "yeah", "yep", "ja", "sure", "why not", "okay", "do it",
-					"fine", "whatever", "very well", "accept", "tpa", "cool", "hell yeah", "hells yeah", "hells yes", "come" }, nos = { "no", "nah", "nope", "no thanks",
-					"no don't", "shut up", "ignore", "it's not", "its not", "creeper", "unsafe", "wait", "one ", "1 " }, common_acronyms = { "RAM", "NASA", "ASAP", "B&B",
-					"D&D", "HAZMAT", "HAZ-MAT", "NIMBY", "Q&A", "R&R", "AIDS" };
+					"I shall return with the gifts of proper language upon the arrival of the upcoming morn." }, profanities = { "fuck", "fck", "fuk", "Goddamn", "Goddam",
+					"damn", "shit", "dammit", "bastard", "bitch", "btch", "damnit", "cunt", "asshole", "bigass", "dumbass", "badass", "dick" }, borders = { "[]", "\\/",
+					"\"*", "_^", "-=", ":;", "&%", "#@", ",.", "<>", "~$", ")(" }, yeses = { "yes", "yeah", "yep", "ja", "sure", "why not", "okay", "do it", "fine",
+					"whatever", "very well", "accept", "tpa", "cool", "hell yeah", "hells yeah", "hells yes", "come" }, nos = { "no", "nah", "nope", "no thanks", "no don't",
+					"shut up", "ignore", "it's not", "its not", "creeper", "unsafe", "wait", "one ", "1 " }, common_acronyms = { "RAM", "NASA", "ASAP", "B&B", "D&D",
+					"HAZMAT", "HAZ-MAT", "NIMBY", "Q&A", "R&R", "AIDS" };
 	private static final String[][] default_login_messages = {
 			{ "[server]", "&eHide your wife! [epithet] just got on!", "&eDid someone order a [epithet]?", "&ePlease insert [epithet] to proceed",
 					"&eWARNING: [epithet] &edetected", "&e[epithet] has arrived.", "&e[epithet], you are the winning visitor!",
@@ -471,14 +470,12 @@ public class myScribe extends JavaPlugin implements Listener {
 		return false;
 	}
 
+	// intra-command methods
 	public static String getEpithet(String player) {
 		return epithets_by_user.get(player);
 	}
 
-	// intra-command methods
 	private String AutoCorrect(CommandSender sender, String message) {
-		// TODO TEMP
-		console.sendMessage("\"" + message + "\"");
 		if (AutoCorrect_on && !message.startsWith("http") && !message.startsWith("www.")) {
 			// Remove accidental...
 			while (// ...slashes that are not part of an emoticon;...
@@ -521,8 +518,6 @@ public class myScribe extends JavaPlugin implements Listener {
 						message = message.substring(0, i) + " " + message.substring(i);
 				}
 			message = " " + message + " ";
-			// TODO TEMP
-			console.sendMessage(ChatColor.WHITE + "message after punctuation splitting: \"" + message + "\"");
 			// perform corrections
 			for (AutoCorrection correction : AutoCorrections)
 				if (!(sender instanceof Player)
@@ -535,8 +530,6 @@ public class myScribe extends JavaPlugin implements Listener {
 			// change all capital words to italics
 			if (change_all_caps_to_italics && !message.startsWith("*") && !message.endsWith("*")) {
 				for (int i = 0; i < words.length; i++) {
-					// TODO TEMP
-					console.sendMessage(ChatColor.WHITE + "\"" + words[i] + "\"");
 					// temporarily eliminate color codes
 					String word = decolor(words[i]);
 					// change the word to lowercase italics if...
@@ -557,8 +550,6 @@ public class myScribe extends JavaPlugin implements Listener {
 							&& (word.length() != 3 || !(word.startsWith(">X") || word.startsWith(">:") || word.startsWith(">;") || word.startsWith(">=")))
 							// ...and the word isn't a Roman numeral
 							&& !replaceAll(word, "M", "", "D", "", "C", "", "L", "", "X", "", "V", "", "I", "").equals("")) {
-						// TODO TEMP
-						console.sendMessage("\"" + words[i] + "\" " + ChatColor.WHITE + "got through!");
 						// if it's the last word in the message and it doesn't have terminal punctuation, add an "!"
 						if (i == words.length - 1 && !word.endsWith(".") && !word.endsWith("!") && !word.endsWith("?") && !word.endsWith(".\"") && !word.endsWith("!\"")
 								&& !word.endsWith("?\""))
@@ -630,8 +621,6 @@ public class myScribe extends JavaPlugin implements Listener {
 								usage = usage + ")";
 							}
 							message = replaceAll(message, "./" + message.substring(i + 2, end_index), usage);
-							// TODO TEMP
-							console.sendMessage("message after command usage inserted: \"" + message + "\"");
 						}
 					}
 				}
@@ -805,6 +794,8 @@ public class myScribe extends JavaPlugin implements Listener {
 				return false;
 			else if (!true_non_anti_null_either && text.startsWith("&"))
 				return false;
+		String[] color_color_code_chars = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f" }, formatting_color_code_chars =
+				{ "k", "l", "m", "n", "o", "r" };
 		if (true_non_formatting_null_either == null || true_non_formatting_null_either)
 			for (String color_color_code_char : color_color_code_chars)
 				if (text.substring(1, 2).equalsIgnoreCase(color_color_code_char))
@@ -873,7 +864,7 @@ public class myScribe extends JavaPlugin implements Listener {
 	private static String replaceAll(String to_return, String... changes) {
 		for (int j = 0; j < changes.length; j += 2) {
 			if (!to_return.toLowerCase().contains(changes[j].toLowerCase()))
-				return to_return;
+				continue;
 			for (int i = 0; to_return.length() >= i + changes[j].length(); i++) {
 				if (to_return.substring(i, i + changes[j].length()).equalsIgnoreCase(changes[j])) {
 					to_return = to_return.substring(0, i) + changes[j + 1] + to_return.substring(i + changes[j].length());
@@ -1073,6 +1064,8 @@ public class myScribe extends JavaPlugin implements Listener {
 	// listeners
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void cancelMutedPlayersChatOrFormatMessage(AsyncPlayerChatEvent event) {
+		if (event.isCancelled())
+			return;
 		// cancel messages accidentally typed while walking or opening chat
 		if (event.getMessage().equals("w") || event.getMessage().equals("t")) {
 			event.setCancelled(true);
