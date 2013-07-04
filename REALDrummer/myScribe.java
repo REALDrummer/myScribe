@@ -471,10 +471,6 @@ public class myScribe extends JavaPlugin implements Listener {
 	}
 
 	// intra-command methods
-	public static String getEpithet(String player) {
-		return epithets_by_user.get(player);
-	}
-
 	private String AutoCorrect(CommandSender sender, String message) {
 		if (AutoCorrect_on && !message.startsWith("http") && !message.startsWith("www.")) {
 			// Remove accidental...
@@ -810,7 +806,7 @@ public class myScribe extends JavaPlugin implements Listener {
 	private static String decolor(String text) {
 		if (!text.contains("&") && !text.contains("%"))
 			return text;
-		for (int i = 0; i < text.length(); i++) {
+		for (int i = 0; i < text.length() - 1; i++) {
 			if (isColorCode(text.substring(i, i + 2), null, null)) {
 				text = text.substring(0, i) + text.substring(i + 2);
 				i -= 2;
@@ -1153,48 +1149,28 @@ public class myScribe extends JavaPlugin implements Listener {
 
 	@EventHandler
 	public void consoleCommandProcessing(ServerCommandEvent event) {
-		// TODO TEMP
-		console.sendMessage(ChatColor.WHITE + event.getCommand());
-		if (!event.getCommand().startsWith("/") || event.getCommand().toLowerCase().startsWith("/say ")) {
-			String message = event.getCommand();
-			if (message.startsWith("/say "))
-				message = message.substring(5);
-			// if it's the continuation of a command
-			if (command_beginnings.containsKey("console")) {
-				String command_beginning = command_beginnings.get(console);
-				if (command_beginnings.get(console) != null) {
-					command_beginning = command_beginnings.get(console);
-					command_beginnings.remove(console);
-				}
-				if (message.endsWith("[...]")) {
-					command_beginnings.put(console, command_beginning + message.substring(0, message.length() - 5));
-					console.sendMessage(ChatColor.BLUE + "You may continue typing.");
-				} else
-					event.setCommand(command_beginning + message);
+		// if it's a chat message
+		if (!event.getCommand().endsWith("[...]")) {
+			String epithet = epithets_by_user.get("console");
+			// if the user has no epithet, use the default
+			if (epithet == null)
+				epithet = "&d[Server]";
+			// fit the epithet and message into the message format
+			String full_chat_message = event.getCommand();
+			if (message_beginnings.get(console) != null) {
+				full_chat_message = message_beginnings.get(console) + event.getCommand();
+				message_beginnings.remove(console);
 			}
-			// if it's a chat message
-			else if (!message.endsWith("[...]")) {
-				String epithet = epithets_by_user.get("console");
-				// if the user has no epithet, use the default
-				if (epithet == null)
-					epithet = "&d[Server]";
-				// fit the epithet and message into the message format
-				String full_chat_message = message;
-				if (message_beginnings.get(console) != null) {
-					full_chat_message = message_beginnings.get(console) + message;
-					message_beginnings.remove(console);
-				}
-				server.broadcastMessage(colorCode(replaceAll(default_message_format, "[player]", "the console", "[epithet]", epithet, "[message]", AutoCorrect(console,
-						full_chat_message))));
-			} // if it's a chat message that will continue indefinitely
-			else {
-				String message_beginning = message_beginnings.get(console);
-				if (message_beginning == null)
-					message_beginning = "";
-				message_beginnings.put(console, message_beginning + message.substring(0, message.length() - 5));
-				console.sendMessage(ChatColor.BLUE + "You may continue typing.");
-				event.setCommand("");
-			}
+			server.broadcastMessage(colorCode(replaceAll(default_message_format, "[player]", "the console", "[epithet]", epithet, "[message]", AutoCorrect(console,
+					full_chat_message))));
+		} // if it's a chat message that will continue indefinitely
+		else {
+			String message_beginning = message_beginnings.get(console);
+			if (message_beginning == null)
+				message_beginning = "";
+			message_beginnings.put(console, message_beginning + event.getCommand().substring(0, event.getCommand().length() - 5));
+			console.sendMessage(ChatColor.BLUE + "You may continue typing.");
+			event.setCommand("");
 		}
 	}
 
