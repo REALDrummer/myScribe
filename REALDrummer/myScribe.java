@@ -101,7 +101,7 @@ public class myScribe extends JavaPlugin implements Listener {
 			new AutoCorrection(" lmk ", " let me know "), new AutoCorrection(" irl ", " in real life "), new AutoCorrection(" wtf ", " what the fuck? ", "?", false),
 			new AutoCorrection(" wtf ", " what the fuck "), new AutoCorrection(" wth ", " what the hell? ", "?", false), new AutoCorrection(" wth ", " what the hell "),
 			new AutoCorrection(" ftw ", " for the win "), new AutoCorrection(" y ", " why ", "=", false), new AutoCorrection(" u ", " you "),
-			new AutoCorrection(" ur ", " your "), new AutoCorrection(" r ", " are "), new AutoCorrection(" o . o ", " \\o.\\o\\ "), new AutoCorrection(" o ", " oh "),
+			new AutoCorrection(" ur ", " your "), new AutoCorrection(" r ", " are "), new AutoCorrection(" o.o ", " \\o.\\o\\ "), new AutoCorrection(" o ", " oh "),
 			new AutoCorrection(" c ", " see "), new AutoCorrection(" k ", " okay "), new AutoCorrection(" kk ", " okay "), new AutoCorrection(" ic ", " I see "),
 			new AutoCorrection(" cya ", " see ya "), new AutoCorrection(" sum1", " someone "), new AutoCorrection(" some1", " someone "),
 			new AutoCorrection("every1", "everyone"), new AutoCorrection("any1", "anyone"), new AutoCorrection(" ttyl ", " I'll talk to you later "),
@@ -191,11 +191,7 @@ public class myScribe extends JavaPlugin implements Listener {
 		loadTheTemporaryData();
 		loadTheBirthdayPeople(console);
 		// done enabling
-		String enable_message = enable_messages[(int) (Math.random() * enable_messages.length)];
-		console.sendMessage(ChatColor.BLUE + enable_message);
-		for (Player player : server.getOnlinePlayers())
-			if (player.isOp())
-				player.sendMessage(ChatColor.BLUE + enable_message);
+		tellOps(ChatColor.BLUE + enable_messages[(int) (Math.random() * enable_messages.length)], true);
 	}
 
 	public void onDisable() {
@@ -209,11 +205,7 @@ public class myScribe extends JavaPlugin implements Listener {
 		saveTheTemporaryData();
 		saveTheBirthdayPeople(console, true);
 		// done disabling
-		String disable_message = disable_messages[(int) (Math.random() * disable_messages.length)];
-		console.sendMessage(ChatColor.BLUE + disable_message);
-		for (Player player : server.getOnlinePlayers())
-			if (player.isOp())
-				player.sendMessage(ChatColor.BLUE + disable_message);
+		tellOps(ChatColor.BLUE + disable_messages[(int) (Math.random() * disable_messages.length)], true);
 	}
 
 	public boolean onCommand(CommandSender sender, Command cmd, String command, String[] my_parameters) {
@@ -361,15 +353,6 @@ public class myScribe extends JavaPlugin implements Listener {
 		} else if (command.toLowerCase().startsWith("color") || command.equalsIgnoreCase("codes")) {
 			sender.sendMessage(colorCode("&00 &11 &22 &33 &44 &55 &66 &77 &88 &99 &aa &bb &cc &dd &ee &ff &kk&f(k) &f&ll&f &mm&f &nn&f &oo"));
 			return true;
-		} else if (command.equalsIgnoreCase("say")) {
-			if (!(sender instanceof Player) || sender.isOp()) {
-				String message = "";
-				for (String parameter : parameters)
-					message = message + " " + parameter;
-				server.broadcastMessage(colorCode(replaceAll(say_format, "[message]", AutoCorrect(sender, message))));
-			} else
-				sender.sendMessage(ChatColor.RED + "Only ops have permission to broadcast messages with " + ChatColor.BLUE + "/say" + ChatColor.RED + ".");
-			return true;
 		} else if (command.equalsIgnoreCase("announce") || command.equalsIgnoreCase("declare") || command.equalsIgnoreCase("decree")) {
 			if ((!(sender instanceof Player) || sender.hasPermission("myscribe.announce.unimportant") || sender.hasPermission("myscribe.announce") || sender
 					.hasPermission("myscribe.announce.important"))
@@ -407,9 +390,10 @@ public class myScribe extends JavaPlugin implements Listener {
 			}
 			for (int i = extra_param; i < parameters.length; i++)
 				message += parameters[i] + " ";
-			if (!message.contains("\\[player\\]")) {
+			if (!message.contains("\\[player\\]") && !message.contains("\\[epithet]\\")) {
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me where you want the player's username to go in the message!");
-				sender.sendMessage(ChatColor.RED + "Just put \"[player]\" in the message to indicate where you want the player's username to go.");
+				sender.sendMessage(ChatColor.RED
+						+ "Just put \"[player]\" in the message to indicate where you want the player's username to go or \"[epithet]\" to indicate where the player's epithet should go.");
 				return true;
 			}
 			ArrayList<String> messages = login_messages.get(sender.getName());
@@ -417,17 +401,66 @@ public class myScribe extends JavaPlugin implements Listener {
 			messages.add(message.substring(0, message.length() - 1));
 			login_messages.put(target, messages);
 			sender.sendMessage(ChatColor.BLUE + "All right. I've added \"" + ChatColor.WHITE + colorCode(message) + ChatColor.BLUE + "\" to the list of login messages.");
+			// get sender's friendly name
+			String sender_name = "someone on the console";
+			if (sender instanceof Player)
+				sender_name = sender.getName();
+			// inform the ops of the change
+			tellOps(ChatColor.BLUE + sender_name + " added a new login message.\n\"" + colorCode(message) + ChatColor.BLUE + "\"", sender instanceof Player, sender.getName());
 			return true;
 		} else if (command.equalsIgnoreCase("mute") || command.equalsIgnoreCase("silence")) {
-			if (sender instanceof Player && !sender.isOp()) {
+			if (sender instanceof Player && !sender.hasPermission("myscribe.mute"))
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.BLUE + "/" + command.toLowerCase() + ChatColor.RED + ".");
-				return true;
-			}
-			if (parameters.length == 0) {
+			else if (parameters.length == 0)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me who you want to mute!");
-				return true;
+			else {
+				String target = getFullName(parameters[0]);
+				if (target == null)
+					sender.sendMessage(ChatColor.RED + "I can't find anyone named \"" + parameters[0] + "\".");
+				else if (muted_players.containsKey(target))
+					sender.sendMessage(ChatColor.RED + muted_players.get(target) + " already muted " + target + ".");
+				else {
+					// get sender's friendly name
+					String sender_name;
+					if (sender instanceof Player)
+						sender_name = sender.getName();
+					else
+						sender_name = "someone on the console";
+					// mute the specified player
+					muted_players.put(target, sender_name);
+					sender.sendMessage(ChatColor.BLUE + target + " has been muted.");
+					// capitalize the first letter of sender's name and tell the other ops what happened
+					if (sender_name.length() > 1)
+						sender_name = sender_name.substring(0, 1).toUpperCase() + sender_name.substring(1);
+					else
+						sender_name = sender_name.toUpperCase();
+					tellOps(ChatColor.BLUE + sender_name + " muted " + target + ".", sender instanceof Player, sender.getName());
+				}
 			}
-
+			return true;
+		} else if (command.equalsIgnoreCase("unmute") || command.equalsIgnoreCase("unsilence")) {
+			if (sender instanceof Player && !sender.hasPermission("myscribe.unmute"))
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.BLUE + "/" + command.toLowerCase() + ChatColor.RED + ".");
+			else if (parameters.length == 0)
+				sender.sendMessage(ChatColor.RED + "You forgot to tell me who you want to unmute!");
+			else {
+				String target = getFullName(parameters[0]);
+				if (target == null)
+					sender.sendMessage(ChatColor.RED + "I can't find anyone named \"" + parameters[0] + "\".");
+				else if (!muted_players.containsKey(target))
+					sender.sendMessage(ChatColor.RED + "No one ever muted " + target + ".");
+				else {
+					// get sender's friendly name with the first letter capitalized to begin the sentence
+					String sender_name = "someone on the console";
+					if (sender instanceof Player)
+						sender_name = sender.getName();
+					// unmute the specified player
+					muted_players.remove(target);
+					sender.sendMessage(ChatColor.BLUE + target + " has been unmuted.");
+					tellOps(ChatColor.BLUE + sender_name + " unmuted " + target + ".", sender instanceof Player, sender.getName());
+				}
+			}
+			return true;
 		} else if (command.equalsIgnoreCase("bd") || command.equalsIgnoreCase("setbd") || command.equalsIgnoreCase("birthday") || command.equalsIgnoreCase("setbirthday")
 				|| command.equalsIgnoreCase("birthdate") || command.equalsIgnoreCase("setbirthdate")) {
 			if (sender instanceof Player && birthday_players.containsKey(sender) && !sender.isOp()) {
@@ -464,6 +497,21 @@ public class myScribe extends JavaPlugin implements Listener {
 
 				String temp = parameters[1] + "/" + parameters[2];
 				birthday_players.put(getFullName(parameters[0]), temp);
+			}
+			return true;
+		} else if (command.equalsIgnoreCase("say")) {
+			if (sender instanceof Player && !sender.isOp())
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.BLUE + "/say" + ChatColor.RED + ".");
+			else if (parameters.length == 0)
+				sender.sendMessage(ChatColor.RED + "You forgot to tell me what you want to say!");
+			else {
+				String message = parameters[0], epithet = epithets_by_user.get("console");
+				if (parameters.length > 1)
+					for (int i = 1; i < parameters.length; i++)
+						message += " " + parameters[i];
+				if (epithet == null)
+					epithet = "&dGod";
+				server.broadcastMessage(colorCode(replaceAll(default_message_format, "[epithet]", epithet, "[message]", AutoCorrect(sender, message))));
 			}
 			return true;
 		}
@@ -675,18 +723,17 @@ public class myScribe extends JavaPlugin implements Listener {
 				message = message.substring(0, message.length() - 2);
 			// capitalize the first letter of every sentence if it is not a correction
 			if (capitalize_first_letter && !message.startsWith("*") && !message.endsWith("*")) {
-				message = "." + message;
+				message = ". " + message;
 				for (int i = 0; i < message.length(); i++) {
-					String check_message = message.substring(i);
-					while (check_message.startsWith(" "))
-						check_message = check_message.substring(1);
-					// locate terminal punctuation and make sure that the thing after them isn't an emoticon
-					if ((message.substring(i, i + 1).equals(".") || message.substring(i, i + 1).equals("!") || message.substring(i, i + 1).equals("?"))
+					String check_message = message.substring(i).trim();
+					// locate terminal punctuation and make sure that the thing after them isn't an emoticon or a website U.R.L.
+					if ((message.substring(i, i + 1).equals(".")
+							&& !(message.length() > i + 1 && isNumberOrLetter(message.substring(i + 1, i + 2)) && !(message.length() > i + 2 && message
+									.substring(i + 2, i + 3).equals("."))) || message.substring(i, i + 1).equals("!") || message.substring(i, i + 1).equals("?"))
 							&& !check_message.startsWith(":")
 							&& !check_message.startsWith(";")
 							&& !check_message.startsWith("=")
-							&& !(check_message.length() >= 3 && check_message.substring(0, 1).equalsIgnoreCase(check_message.substring(2, 3)) && check_message.substring(0, 1)
-									.equalsIgnoreCase("o"))) {
+							&& !(check_message.length() >= 3 && check_message.substring(0, 1).equalsIgnoreCase(check_message.substring(2, 3)))) {
 						while (i < message.length() - 1)
 							// if it's not a letter or number, skip it
 							if (message.substring(i, i + 1).toUpperCase().equals(message.substring(i, i + 1).toLowerCase()) && !message.substring(i, i + 1).equals("0")
@@ -712,7 +759,7 @@ public class myScribe extends JavaPlugin implements Listener {
 								message = message.substring(0, i) + message.substring(i, i + 1).toUpperCase() + message.substring(i + 1);
 					}
 				}
-				message = message.substring(1);
+				message = message.substring(2);
 			}
 			// end lines with a period if no terminal punctuation exists and the message doesn't start with or end with a * (correction) and the message's last
 			// or second to last characters are not colons (emoticons)
@@ -806,10 +853,15 @@ public class myScribe extends JavaPlugin implements Listener {
 	private static String decolor(String text) {
 		if (!text.contains("&") && !text.contains("%"))
 			return text;
-		for (int i = 0; i < text.length() - 1; i++) {
+		for (int i = 0; i < text.length() - 2; i++) {
 			if (isColorCode(text.substring(i, i + 2), null, null)) {
-				text = text.substring(0, i) + text.substring(i + 2);
+				if (i + 2 < text.length())
+					text = text.substring(0, i) + text.substring(i + 2);
+				else
+					text = text.substring(0, i);
 				i -= 2;
+				if (i < -1)
+					i = -1;
 			}
 		}
 		return text;
@@ -1057,6 +1109,17 @@ public class myScribe extends JavaPlugin implements Listener {
 			return null;
 	}
 
+	public static void tellOps(String message, boolean also_tell_console, String... exempt_ops) {
+		// capitalize the first letters of sentences
+		if (message.length() > 1)
+			message = message.substring(0, 1).toUpperCase() + message.substring(1);
+		for (Player player : server.getOnlinePlayers())
+			if (player.isOp() && !contains(exempt_ops, player.getName()))
+				player.sendMessage(message);
+		if (also_tell_console)
+			console.sendMessage(message);
+	}
+
 	// listeners
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void cancelMutedPlayersChatOrFormatMessage(AsyncPlayerChatEvent event) {
@@ -1150,32 +1213,25 @@ public class myScribe extends JavaPlugin implements Listener {
 	@EventHandler
 	public void consoleCommandProcessing(ServerCommandEvent event) {
 		// if it's a chat message
-		if (!event.getCommand().endsWith("[...]")) {
-			String epithet = epithets_by_user.get("console");
-			// if the user has no epithet, use the default
-			if (epithet == null)
-				epithet = "&d[Server]";
-			// fit the epithet and message into the message format
-			String full_chat_message = event.getCommand();
-			if (message_beginnings.get(console) != null) {
-				full_chat_message = message_beginnings.get(console) + event.getCommand();
-				message_beginnings.remove(console);
-			}
-			server.broadcastMessage(colorCode(replaceAll(default_message_format, "[player]", "the console", "[epithet]", epithet, "[message]", AutoCorrect(console,
-					full_chat_message))));
-		} // if it's a chat message that will continue indefinitely
-		else {
-			String message_beginning = message_beginnings.get(console);
-			if (message_beginning == null)
-				message_beginning = "";
+		String message_beginning = message_beginnings.get(console);
+		if (message_beginning == null)
+			message_beginning = "";
+		if (event.getCommand().endsWith("[...]")) {
 			message_beginnings.put(console, message_beginning + event.getCommand().substring(0, event.getCommand().length() - 5));
 			console.sendMessage(ChatColor.BLUE + "You may continue typing.");
 			event.setCommand("");
+		} else {
+			message_beginnings.remove(console);
+			event.setCommand(message_beginning + event.getCommand());
 		}
 	}
 
 	@EventHandler
 	public void onLogin(PlayerJoinEvent event) {
+		String epithet = epithets_by_user.get(event.getPlayer().getName());
+		if (epithet == null)
+			epithet = default_epithet.replaceAll("\\[player\\]", event.getPlayer().getName());
+		event.getPlayer().setDisplayName(colorCode(epithet));
 		if (!event.getPlayer().hasPlayedBefore()) {
 			event.setJoinMessage(ChatColor.BLUE + event.getPlayer().getName() + " has just logged onto the server for the first time!");
 			event.getPlayer().sendMessage(
@@ -1192,9 +1248,6 @@ public class myScribe extends JavaPlugin implements Listener {
 				possible_messages = login_messages.get(event.getPlayer().getName());
 			if (possible_messages == null || possible_messages.size() == 0)
 				return;
-			String epithet = epithets_by_user.get(event.getPlayer().getName());
-			if (epithet == null)
-				epithet = default_epithet.replaceAll("\\[player\\]", event.getPlayer().getName());
 			event.setJoinMessage(possible_messages.get((int) (Math.random() * possible_messages.size())).replaceAll("\\[player\\]", event.getPlayer().getName()).replaceAll(
 					"\\[epithet\\]", epithet));
 		}
@@ -1521,7 +1574,7 @@ public class myScribe extends JavaPlugin implements Listener {
 
 	private void loadTheEpithets(CommandSender sender) {
 		epithets_by_user = new HashMap<String, String>();
-		default_epithet = "<[player]>";
+		default_epithet = "&f[player]";
 		default_message_format = "[epithet]&f: [message]";
 		// check the epithets file
 		File epithets_file = new File(getDataFolder(), "epithets.txt");
