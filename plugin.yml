@@ -14,6 +14,11 @@ commands:
       description: This command will let you toggle your a.f.k. status, check if a specific player is a.f.k., or see a list of all the people who are a.f.k.
       usage: |
            /<command> (player/"list")
+   announce:
+      aliases: [declare, decree]
+      description: This command will let you make announcements that are broadcasted across the server, then shown to players who log on later who missed it.
+      usage: |
+           /<command> ("[i]"/"[u]") [announcement]
    color:
       aliases: [colors, colorcodes, codes]
       description: This command shows what color codes result in what color or formatting code.
@@ -34,3 +39,8 @@ commands:
       description: This command displays all the rules for your server.
       usage: |
            /<command> (page #)
+   say:
+      aliases: []
+      description: This command broadcasts a message to the entire server as the server console.
+      usage: |
+           /<command> [message]

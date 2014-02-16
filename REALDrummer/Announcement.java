@@ -64,9 +64,8 @@ public class Announcement {
 		try {
 			time_created = Long.parseLong(save_line1.substring(save_line1.indexOf("time = ") + 7, save_line1.indexOf(",")));
 		} catch (NumberFormatException exception) {
-			myScribe.console.sendMessage(ChatColor.DARK_RED + "I couldn't read the time this announcement was created!");
-			myScribe.console.sendMessage(ChatColor.DARK_RED + "This is the save line of the announcement: " + ChatColor.WHITE + save_line1 + ChatColor.DARK_RED
-					+ ".");
+			myScribe.tellOps(ChatColor.DARK_RED + "I couldn't read the time this announcement was created!", true);
+			myScribe.tellOps(ChatColor.DARK_RED + "This is the save line of the announcement: " + ChatColor.WHITE + save_line1 + ChatColor.DARK_RED + ".", true);
 			exception.printStackTrace();
 			return;
 		}
@@ -99,8 +98,7 @@ public class Announcement {
 			players_who_have_read_it.add(temp[temp.length - 1].substring(4, save_line2.substring(4).indexOf(" ")));
 		}
 		// TEMPORARY
-		myScribe.console.sendMessage("time created = " + time_created + "; creator: \"" + creator + "\"; is important: " + is_important.toString()
-				+ "; announcement: \"" + announcement + "\"");
+		myScribe.console.sendMessage("time created = " + time_created + "; creator: \"" + creator + "\"; is important: " + is_important.toString() + "; announcement: \"" + announcement + "\"");
 		myScribe.console.sendMessage("players who have read it:");
 		for (String player : players_who_have_read_it)
 			myScribe.console.sendMessage("\"" + player + "\"");
